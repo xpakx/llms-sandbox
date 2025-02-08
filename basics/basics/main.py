@@ -3,6 +3,7 @@ import json
 from typing import Generator, Dict, Any
 import tempfile
 import subprocess
+import os
 
 
 def load_config(filename: str) -> Dict[str, Any]:
@@ -67,21 +68,36 @@ def stream_chat(client: OpenAI, messages) -> Generator[str, None, None]:
         print(f"An error occurred while asking DeepSeek: {e}")
         raise
 
-
 def get_input(prompt="Enter message:"):
     query = input(prompt + " ")
+
+    editor = os.environ.get("EDITOR", "nvim")
+
     if query != "":
         return query
-    with tempfile.NamedTemporaryFile(suffix=".txt", mode='w+') as temp_file:
-        subprocess.call(['nvim', temp_file.name])
-        temp_file.seek(0)
-        user_input = temp_file.read().strip()
-    return user_input
+    with tempfile.NamedTemporaryFile(suffix=".txt", mode='w+', delete=False) as temp_file:
+        temp_file_path = temp_file.name
+
+    while True:
+        subprocess.call([editor, temp_file_path])
+        with open(temp_file_path, 'r') as temp_file:
+            user_input = temp_file.read().strip()
+
+        print("\nOptions:")
+        print("[e] Continue editing")
+        print("[] Send this message")
+        choice = input("Choose an option: ").strip()
+
+        if choice == 'w':
+            continue 
+        else:
+            return user_input
+
 
 
 def chat(client: OpenAI):
     query: str = ""
-    history = []
+    history = [{"role": "system", "content": "Respond with brief, conversational messages. Keep it concise and to the point."}]
     response = ""
     while True:
         query = get_input()
