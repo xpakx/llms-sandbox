@@ -11,8 +11,7 @@ def load_config(filename: str) -> Dict[str, Any]:
         return json.load(file)
 
 
-def get_client() -> OpenAI:
-    config = load_config("config.json");
+def get_client(api_key: str) -> OpenAI:
     url = "https://openrouter.ai/api/v1"
     return OpenAI(base_url=url, api_key=config["apiKey"])
 
@@ -95,9 +94,9 @@ def get_input(prompt="Enter message:"):
 
 
 
-def chat(client: OpenAI):
+def chat(client: OpenAI, config):
     query: str = ""
-    history = [{"role": "system", "content": "Respond with brief, conversational messages. Keep it concise and to the point."}]
+    history = [{"role": "system", "content": config["systemPrompt"]}]
     response = ""
     while True:
         query = get_input()
@@ -112,5 +111,6 @@ def chat(client: OpenAI):
         history.append({"role": "assistant", "content": response})
 
 if __name__ == "__main__":
-    client = get_client()
-    chat(client)
+    config = load_config("config.json");
+    client = get_client(config["apiKey"])
+    chat(client, config)
