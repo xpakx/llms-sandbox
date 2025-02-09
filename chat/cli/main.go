@@ -2,9 +2,12 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"flag"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -86,4 +89,31 @@ func raw_message(args []string) {
 
 func sendMessage(msg string) {
 	log.Println(msg)
+	message := MessageItem{
+		Type: "Message",
+		Message: Message{
+			Username: "me",
+			Content: msg,
+			Timestamp: "01-01-1970",
+			Id: "1",
+		},
+	}
+	jsonData, err := json.Marshal(message)
+	if err != nil {
+		log.Fatalf("error marshalling message: %v", err)
+	}
+
+	url := "http://localhost:8000/send/chat"
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Fatalf("error sending request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	log.Println("Message sent successfully")
 }
