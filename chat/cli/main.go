@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func main() {
@@ -17,6 +18,8 @@ func main() {
 		interactive_main()
 	} else if isInputFromPipe() {
 		pipe()
+	} else if len(flag.Args()) > 0 {
+		raw_message(flag.Args())
 	} else {
 		editor()
 	}
@@ -48,7 +51,7 @@ func editor() {
 		log.Fatal("couldn't read temp file")
 	}
 
-	log.Println(string(content))
+	sendMessage(string(content))
 }
 
 func isInputFromPipe() bool {
@@ -69,5 +72,18 @@ func pipe() {
 		}
 		input = append(input, line...)
 	}
-	log.Println(string(input))
+	sendMessage(string(input))
+}
+
+func raw_message(args []string) {
+	var builder strings.Builder
+	for _, arg := range args {
+		builder.WriteString(arg)
+	}
+	result := builder.String()
+	sendMessage(result)
+}
+
+func sendMessage(msg string) {
+	log.Println(msg)
 }
