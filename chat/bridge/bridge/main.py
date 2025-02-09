@@ -2,7 +2,7 @@ from fastapi import FastAPI, WebSocket
 from fastapi.websockets import WebSocketDisconnect
 import re
 from collections import defaultdict
-from typing import Any
+from typing import Any, Dict
 import json
 
 clients = []
@@ -33,6 +33,15 @@ async def websocket_endpoint(websocket: WebSocket):
         for channel in channels.values():
             if websocket in channel:
                 channel.remove(websocket)
+
+
+@app.post("/send/{channel_id}")
+async def send_message_to_channel(channel_id: str, message: Dict[str, Any]):
+    channel = f"/topic/{channel_id}"
+    if channel not in channels:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    await send_to_channel(channel, message)
+    return {"status": "Message sent to channel", "channel_id": channel}
 
 
 async def send_to_channel(channel_id: str, message: Any):
