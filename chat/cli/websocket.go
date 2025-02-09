@@ -26,7 +26,7 @@ func (m *websocket_service) SetProgram(program *tea.Program) {
 
 
 func (ws *websocket_service) ConnectWS() {
-	url := "ws://localhost:8080/ws/websocket"
+	url := "ws://localhost:8000/ws/websocket"
 
 	c, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
