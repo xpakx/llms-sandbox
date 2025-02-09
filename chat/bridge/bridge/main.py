@@ -25,7 +25,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     channel_id = match.group(1)
                     print("Topic to subscribe:", channel_id)
                     channels[channel_id].add(websocket)
-                    await send_to_channel(channel_id, [{"type":"Message", "message": {"content":"tst", "username":"me", "id":"1", "timestamp":"01-01-1970"}}])
+                    await send_message(channel_id, websocket, [{"type":"Message", "message": {"content":"tst", "username":"me", "id":"1", "timestamp":"01-01-1970"}}])
             else:
                 print(data)
     except WebSocketDisconnect:
@@ -42,3 +42,10 @@ async def send_to_channel(channel_id: str, message: Any):
     for ws in channels[channel_id]:
         print(ws)
         await ws.send_text(msg)
+
+
+async def send_message(channel_id: str, ws: WebSocket, message: Any):
+    message_json = json.dumps(message)
+    msg = f"SEND\ndestination:{channel_id}\n\n{message_json}\000"
+    print(msg)
+    await ws.send_text(msg)
