@@ -55,7 +55,7 @@ async def send_message_to_channel(channel_id: str, message: Dict[str, Any]):
     if channel not in channels:
         raise HTTPException(status_code=404, detail="Channel not found")
     await send_to_channel(channel, [message])
-    asyncio.create_task(process_response(client, config, message, channel))
+    asyncio.create_task(process_response_fib(client, config, message, channel))
     return {"status": "Message sent to channel", "channel_id": channel}
 
 
@@ -96,3 +96,20 @@ def chat(client: OpenAI, config, query: str):
 async def process_response(client: OpenAI, config, message, channel):
     response = chat(client, config, message['message']['content'])
     await send_to_channel(channel, [response])
+
+
+# with fibonacci backoff
+async def process_response_fib(client: OpenAI, config, message, channel):
+    max_retries = 5
+    fib_prev, fib_curr = 0, 1
+
+    for attempt in range(max_retries):
+        response = chat(client, config, message['message']['content'])
+        if response.get('type') != 'Error':
+            await send_to_channel(channel, [response])
+            return
+
+        await asyncio.sleep(fib_curr)
+        fib_prev, fib_curr = fib_curr, fib_prev + fib_curr
+
+    print("Max retries reached. Failed to process response.")
