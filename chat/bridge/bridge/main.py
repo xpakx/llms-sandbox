@@ -4,11 +4,24 @@ import re
 from collections import defaultdict
 from typing import Any, Dict
 import json
+from bridge.ai import get_client, ask_deepseek
+from datetime import datetime
+from openai import OpenAI
+
+
+def load_config(filename: str) -> Dict[str, Any]:
+    with open(filename, 'r') as file:
+        return json.load(file)
+
 
 clients = []
 channels = defaultdict(set)
 
 app = FastAPI()
+config = load_config("config.json")
+client = get_client(config["apiKey"])
+history = [{"role": "system", "content": config["systemPrompt"]}]
+
 
 @app.websocket("/ws/websocket")
 async def websocket_endpoint(websocket: WebSocket):
@@ -40,7 +53,9 @@ async def send_message_to_channel(channel_id: str, message: Dict[str, Any]):
     channel = f"/topic/{channel_id}"
     if channel not in channels:
         raise HTTPException(status_code=404, detail="Channel not found")
-    await send_to_channel(channel, message)
+    await send_to_channel(channel, [message])
+    response = chat(client, config, message['message']['content'])
+    await send_to_channel(channel, [response])
     return {"status": "Message sent to channel", "channel_id": channel}
 
 
@@ -58,3 +73,20 @@ async def send_message(channel_id: str, ws: WebSocket, message: Any):
     msg = f"SEND\ndestination:{channel_id}\n\n{message_json}\000"
     print(msg)
     await ws.send_text(msg)
+
+
+def chat(client: OpenAI, config, query: str):
+    response = ""
+    history.append({"role": "user", "content": query})
+    response = ask_deepseek(client, history)
+    history.append({"role": "assistant", "content": response})
+    return { 
+            "type": "Message",
+            "message": {
+                "content": response,
+                "username": "ai",
+                "id": "1",
+                "timestamp": str(datetime.now())
+                }
+            }
+    
