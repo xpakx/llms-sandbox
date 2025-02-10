@@ -74,9 +74,8 @@ async def send_message(channel_id: str, ws: WebSocket, message: Any):
     await ws.send_text(msg)
 
 
-def chat(client: OpenAI, config, query: str):
+def chat(client: OpenAI, config):
     response = ""
-    history.append({"role": "user", "content": query})
     try:
         response = ask_deepseek(client, history)
     except Exception as e:
@@ -94,17 +93,22 @@ def chat(client: OpenAI, config, query: str):
     
 
 async def process_response(client: OpenAI, config, message, channel):
-    response = chat(client, config, message['message']['content'])
+    query = message['message']['content']
+    history.append({"role": "user", "content": query})
+    response = chat(client, config)
     await send_to_channel(channel, [response])
 
 
 # with fibonacci backoff
 async def process_response_fib(client: OpenAI, config, message, channel):
+    query = message['message']['content']
+    history.append({"role": "user", "content": query})
+
     max_retries = 5
     fib_prev, fib_curr = 0, 1
 
     for attempt in range(max_retries):
-        response = chat(client, config, message['message']['content'])
+        response = chat(client, config)
         if response.get('type') != 'Error':
             await send_to_channel(channel, [response])
             return
