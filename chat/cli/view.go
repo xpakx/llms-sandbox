@@ -113,14 +113,14 @@ func draw(m model) (string) {
 		if msg.Type == "Message" {
 			renderedMessages = append(
 				renderedMessages, 
-				message(msg.Message.Username, msg.Message.Timestamp, msg.Message.Content, msg.Message.Username == "me", m.width))
+				message(msg.Message.Username, msg.Message.Timestamp, msg.Message.Content, msg.Message.Username == "me", m.width - 4))
 		}
 	}
 
 	msgs := lipgloss.
 		NewStyle().
-		MaxHeight(m.height - 4).
-		Height(m.height - 4).
+		MaxHeight(m.height - 2).
+		Height(m.height - 2).
 		Render(m.viewport.View())
 	doc.WriteString(msgs)
 	doc.WriteString("\n")
@@ -132,7 +132,7 @@ func draw(m model) (string) {
 		modeIndicator := modeStyle.Render("INSERT")
 		nameContainer := logoStyle.Render("🧶 AI")
 		description := statusText.
-			Width(m.width - w(modeIndicator) - w(nameContainer)).
+			Width(m.width - w(modeIndicator) - w(nameContainer) - 4).
 			Render("Desc")
 
 		bar := lipgloss.JoinHorizontal(lipgloss.Top,
