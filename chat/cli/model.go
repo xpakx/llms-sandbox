@@ -26,7 +26,7 @@ func initialModel(websocket *websocket_service) model {
 }
 
 func (m *model) UpdateViewport() {
-	chatWidth := m.width;
+	chatWidth := m.width - 4;
 	var renderedMessages []string
 	for _, msg := range m.messages {
 		if msg.Type == "Message" {
@@ -37,6 +37,8 @@ func (m *model) UpdateViewport() {
 	}
 
 	messageContainer := lipgloss.JoinVertical(lipgloss.Top, renderedMessages...)
+	m.viewport.Width = m.width - 2;
+	m.viewport.Height = m.height - 4;
 	m.viewport.SetContent(messageContainer)
 }
 
