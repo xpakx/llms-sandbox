@@ -51,7 +51,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
-		    return m, tea.Quit
+			return m, tea.Quit
+		case "j":
+			m.viewport.ViewDown()
+			return m, nil
+		case "k":
+			m.viewport.ViewUp()
+			return m, nil
 		}
     case ChannelMsg:
 	    m.messages = append(m.messages, msg.messages...)
