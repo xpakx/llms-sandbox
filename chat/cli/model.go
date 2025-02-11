@@ -11,6 +11,8 @@ type model struct {
     messages           []MessageItem   
     websocket          *websocket_service
     viewport           viewport.Model
+    width              int
+    height             int
 }
 
 func initialModel(websocket *websocket_service) model {
@@ -24,7 +26,7 @@ func initialModel(websocket *websocket_service) model {
 }
 
 func (m *model) UpdateViewport() {
-	chatWidth := width;
+	chatWidth := m.width;
 	var renderedMessages []string
 	for _, msg := range m.messages {
 		if msg.Type == "Message" {
@@ -54,6 +56,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	    m.UpdateViewport()
 	    m.viewport.GotoBottom()
     case tea.WindowSizeMsg:
+	    m.width = msg.Width
+	    m.height = msg.Height
 	    m.UpdateViewport()
     }
 

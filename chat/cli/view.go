@@ -8,10 +8,6 @@ import (
 	"golang.org/x/term"
 )
 
-const (
-	width = 96 // TODO
-)
-
 var (
 	subtle    = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
 	highlight = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
@@ -117,14 +113,14 @@ func draw(m model) (string) {
 		if msg.Type == "Message" {
 			renderedMessages = append(
 				renderedMessages, 
-				message(msg.Message.Username, msg.Message.Timestamp, msg.Message.Content, msg.Message.Username == "me", width))
+				message(msg.Message.Username, msg.Message.Timestamp, msg.Message.Content, msg.Message.Username == "me", m.width))
 		}
 	}
 
 	msgs := lipgloss.
 		NewStyle().
-		MaxHeight(19 - 4).
-		Height(19 - 4).
+		MaxHeight(m.height - 4).
+		Height(m.height - 4).
 		Render(m.viewport.View())
 	doc.WriteString(msgs)
 	doc.WriteString("\n")
@@ -136,7 +132,7 @@ func draw(m model) (string) {
 		modeIndicator := modeStyle.Render("INSERT")
 		nameContainer := logoStyle.Render("🧶 AI")
 		description := statusText.
-			Width(width - w(modeIndicator) - w(nameContainer)).
+			Width(m.width - w(modeIndicator) - w(nameContainer)).
 			Render("Desc")
 
 		bar := lipgloss.JoinHorizontal(lipgloss.Top,
@@ -145,7 +141,7 @@ func draw(m model) (string) {
 			nameContainer,
 		)
 
-		doc.WriteString(descriptionBarStyle.Width(width).Render(bar))
+		doc.WriteString(descriptionBarStyle.Width(m.width).Render(bar))
 	}
 
 	if physicalWidth > 0 {
