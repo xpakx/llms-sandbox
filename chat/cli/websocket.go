@@ -25,15 +25,16 @@ func (m *websocket_service) SetProgram(program *tea.Program) {
 }
 
 
-func (ws *websocket_service) ConnectWS() {
+func (ws *websocket_service) ConnectWS() error {
 	url := "ws://localhost:8000/ws/websocket"
 
 	c, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
-		log.Fatal("dial:", err)
+		return fmt.Errorf("dial:", err)
 	}
 
 	ws.Connection = c
+	return nil
 }
 
 func (ws *websocket_service) Connect() {
@@ -55,6 +56,35 @@ func (ws *websocket_service) Subscribe() {
 	}
 }
 
+func (ws *websocket_service) Reconnect() error {
+	if ws.Connection != nil {
+		_ = ws.Connection.Close()
+	}
+
+	maxRetries := 10
+	retries := 0
+	a, b := 0, 1
+
+	for {
+		if retries >= maxRetries {
+			log.Fatal("Cannot connect")
+			return fmt.Errorf("Cannot connect")
+		}
+		err := ws.ConnectWS()
+		if (err != nil) {
+			// log.Printf("Failed to connect, retrying in %d seconds", b)
+			time.Sleep(time.Duration(b) * time.Second)
+			a, b = b, a+b
+			retries++
+			continue
+		}
+		ws.Connect()
+		ws.Subscribe()
+		break
+	}
+	return nil
+}
+
 func (ws *websocket_service) Run() {
 	done := make(chan struct{})
 	go func() {
@@ -67,8 +97,11 @@ func (ws *websocket_service) Run() {
 			default:
 				_, message, err := ws.Connection.ReadMessage()
 				if err != nil {
-					log.Println("read:", err)
-					return
+					// log.Println("read:", err)
+					err2 := ws.Reconnect()
+					if (err2 != nil) {
+						return
+					}
 				}
 				ws.handleMessage(string(message))
 			}
