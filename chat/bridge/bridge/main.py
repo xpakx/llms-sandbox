@@ -117,3 +117,23 @@ async def process_response_fib(client: OpenAI, config, message, channel):
         fib_prev, fib_curr = fib_curr, fib_prev + fib_curr
 
     print("Max retries reached. Failed to process response.")
+
+
+@app.get("/{channel_id}/{index}")
+async def send_message_to_channel(channel_id: str, index: int):
+    channel = f"/topic/{channel_id}"
+    if channel not in channels:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    i = len(history) - index - 1
+    if i < 0:
+        raise HTTPException(status_code=400, detail="Bad index")
+    msg = history[i]
+    return { 
+            "type": "Message",
+            "message": {
+                "content": msg['content'],
+                "username": msg['role'],
+                "id": "1",
+                "timestamp": str(datetime.now())
+                }
+            }
