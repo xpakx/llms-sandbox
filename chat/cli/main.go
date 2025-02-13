@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -16,6 +17,20 @@ import (
 func main() {
 	iFlag := flag.Bool("i", false, "Interactive mode")
 	flag.Parse()
+
+	// subprograms
+	if len(flag.Args()) > 0 {
+		subcommand := flag.Arg(0)
+		switch subcommand {
+		case "print":
+			printCmd := flag.NewFlagSet("print", flag.ExitOnError)
+			verboseFlag := printCmd.Bool("v", false, "Verbose mode")
+			printCmd.Parse(flag.Args()[1:])
+
+			printSubProgram(*verboseFlag)
+			return
+		}
+	}
 
 	if *iFlag {
 		interactive_main()
@@ -116,4 +131,39 @@ func sendMessage(msg string) {
 	}
 
 	log.Println("Message sent successfully")
+}
+
+func printSubProgram(verbose bool) {
+	url := "http://localhost:8000/chat/0"
+
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Printf("Error fetching data: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Error reading response body: %v\n", err)
+		return
+	}
+
+	var message MessageItem
+	err = json.Unmarshal(body, &message)
+	if err != nil {
+		log.Printf("Error unmarshaling JSON: %v\n", err)
+		return
+	}
+
+	if verbose {
+		fmt.Printf("Verbose Output:\n")
+		fmt.Printf("ID: %d\n", message.Message.Id)
+		fmt.Printf("Type: %d\n", message.Type)
+		fmt.Printf("Author: %s\n", message.Message.Username)
+		fmt.Printf("Time: %s\n", message.Message.Timestamp)
+		fmt.Printf("Content: %s\n", message.Message.Content)
+	} else {
+		fmt.Printf(message.Message.Content)
+	}
 }
