@@ -4,10 +4,11 @@ const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 
 ws.onopen = () => {
-	ws.send('SUBSCRIBE destination:/topic/main'); // TODO
+	ws.send('SUBSCRIBE destination:/topic/chat'); // TODO
 };
 
 ws.onmessage = (event) => {
+	console.log(event);
 	const data = parseMsg(event.data);
 	if (data.type === 'Message') {
 		console.log(data)
