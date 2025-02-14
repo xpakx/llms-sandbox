@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.websockets import WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 import re
 from collections import defaultdict
 from typing import Any, Dict
@@ -19,6 +20,13 @@ clients = []
 channels = defaultdict(set)
 
 app = FastAPI()
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        )
 config = load_config("config.json")
 client = get_client(config["apiKey"])
 history = [{"role": "system", "content": config["systemPrompt"]}]
