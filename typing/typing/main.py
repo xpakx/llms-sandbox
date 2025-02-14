@@ -36,7 +36,7 @@ def event_extraction(client: OpenAI, msg: str):
             model="deepseek/deepseek-chat:free",
             messages=[
                 {"role": "system", "content": prompt},
-                {"role": "system", "content": f"Today is ${datetime.now()}"},
+                {"role": "system", "content": f"Today is {datetime.now()}"},
                 {"role": "user", "content": msg},
                 ],
             response_format=CalendarEvent,
