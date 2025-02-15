@@ -146,12 +146,13 @@ def get_detailed_history():
     return [to_response(msg) for msg in history if msg["role"] != "system"]
 
 def to_response(msg):
+    time = msg["date"].strftime("%Y-%m-%d %H:%M:%S")
     return {
                 "type": "Message",
                 "message": {
                     "content": msg["content"],
                     "username": "ai" if msg["role"] == "assistant" else msg["role"],
                     "id": "1",
-                    "timestamp": str(msg["date"])
+                    "timestamp": time
                     }
                 }
