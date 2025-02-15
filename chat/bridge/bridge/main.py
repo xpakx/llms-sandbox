@@ -64,17 +64,10 @@ async def send_message_to_channel(channel_id: str, message: Dict[str, Any]):
         raise HTTPException(status_code=404, detail="Channel not found")
     query = message['content']
     time = datetime.now()
-    history.append({"role": "user", "content": query, "date": time})
-    msg = { 
-            "type": "Message",
-            "message": {
-                "content": query,
-                "username": "user",
-                "id": "1",
-                "timestamp": str(time)
-                }
-            }
-    await send_to_channel(channel, [msg])
+    msg = {"role": "user", "content": query, "date": time}
+    history.append(msg)
+    response = to_response(msg)
+    await send_to_channel(channel, [response])
     asyncio.create_task(process_response_fib(client, config, channel))
     return {"status": "Message sent to channel", "channel_id": channel}
 
@@ -105,16 +98,9 @@ def chat(client: OpenAI, config):
     except Exception as e:
         return {"type": "Error"}
     time = datetime.now()
-    history.append({"role": "assistant", "content": response, "date": time})
-    return { 
-            "type": "Message",
-            "message": {
-                "content": response,
-                "username": "ai",
-                "id": "1",
-                "timestamp": str(time)
-                }
-            }
+    msg = {"role": "assistant", "content": response, "date": time}
+    history.append(msg)
+    return to_response(msg)
     
 
 async def process_response(client: OpenAI, config, message, channel):
@@ -149,16 +135,7 @@ async def get_message_from_channel(channel_id: str, index: int):
     i = len(history) - index - 1
     if i < 0:
         raise HTTPException(status_code=400, detail="Bad index")
-    msg = history[i]
-    return { 
-            "type": "Message",
-            "message": {
-                "content": msg['content'],
-                "username": msg['role'],
-                "id": "1",
-                "timestamp": str(msg['date'])
-                }
-            }
+    return to_response(history[i]) 
 
 async def send_messages_on_subscription(channel_id: str, ws: WebSocket):
     hist = get_detailed_history()
@@ -166,8 +143,10 @@ async def send_messages_on_subscription(channel_id: str, ws: WebSocket):
 
 
 def get_detailed_history():
-    return [
-            {
+    return [to_response(msg) for msg in history if msg["role"] != "system"]
+
+def to_response(msg):
+    return {
                 "type": "Message",
                 "message": {
                     "content": msg["content"],
@@ -176,5 +155,3 @@ def get_detailed_history():
                     "timestamp": str(msg["date"])
                     }
                 }
-            for msg in history if msg["role"] != "system"
-            ]
