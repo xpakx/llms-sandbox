@@ -102,16 +102,15 @@ func raw_message(args []string) {
 	sendMessage(result)
 }
 
+
+type MessageDto struct { 
+	Content          string    `json:"content"`
+}
+
 func sendMessage(msg string) {
 	log.Println(msg)
-	message := MessageItem{
-		Type: "Message",
-		Message: Message{
-			Username: "me",
-			Content: msg,
-			Timestamp: "01-01-1970",
-			Id: "1",
-		},
+	message := MessageDto{
+		Content: msg,
 	}
 	jsonData, err := json.Marshal(message)
 	if err != nil {

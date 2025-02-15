@@ -62,8 +62,20 @@ async def send_message_to_channel(channel_id: str, message: Dict[str, Any]):
     channel = f"/topic/{channel_id}"
     if channel not in channels:
         raise HTTPException(status_code=404, detail="Channel not found")
-    await send_to_channel(channel, [message])
-    asyncio.create_task(process_response_fib(client, config, message, channel))
+    query = message['content']
+    time = datetime.now()
+    history.append({"role": "user", "content": query, "date": time})
+    msg = { 
+            "type": "Message",
+            "message": {
+                "content": query,
+                "username": "user",
+                "id": "1",
+                "timestamp": str(time)
+                }
+            }
+    await send_to_channel(channel, [msg])
+    asyncio.create_task(process_response_fib(client, config, channel))
     return {"status": "Message sent to channel", "channel_id": channel}
 
 
@@ -106,18 +118,14 @@ def chat(client: OpenAI, config):
     
 
 async def process_response(client: OpenAI, config, message, channel):
-    query = message['message']['content']
+    query = message['content']
     history.append({"role": "user", "content": query})
     response = chat(client, config)
     await send_to_channel(channel, [response])
 
 
 # with fibonacci backoff
-async def process_response_fib(client: OpenAI, config, message, channel):
-    query = message['message']['content']
-    time = datetime.now()
-    history.append({"role": "user", "content": query, "date": time})
-
+async def process_response_fib(client: OpenAI, config, channel):
     max_retries = 5
     fib_prev, fib_curr = 0, 1
 
@@ -134,7 +142,7 @@ async def process_response_fib(client: OpenAI, config, message, channel):
 
 
 @app.get("/{channel_id}/{index}")
-async def send_message_to_channel(channel_id: str, index: int):
+async def get_message_from_channel(channel_id: str, index: int):
     channel = f"/topic/{channel_id}"
     if channel not in channels:
         raise HTTPException(status_code=404, detail="Channel not found")

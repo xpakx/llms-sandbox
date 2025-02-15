@@ -24,13 +24,7 @@ sendBtn.onclick = () => {
 	const message = messageInput.value.trim();
 	if (message) {
 		const msg = {
-			type: 'Message',
-			message: {
-				content: message,
-				username: 'user',
-				id: '1',
-				timestamp: new Date().toISOString()
-			}
+			content: message,
 		};
 		sendMessage(JSON.stringify(msg));
 		messageInput.value = '';
