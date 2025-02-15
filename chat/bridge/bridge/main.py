@@ -153,4 +153,20 @@ async def send_message_to_channel(channel_id: str, index: int):
             }
 
 async def send_messages_on_subscription(channel_id: str, ws: WebSocket):
-    await send_message(channel_id, ws, [{"type":"Message", "message": {"content":"tst", "username":"me", "id":"1", "timestamp":"01-01-1970"}}])
+    hist = get_detailed_history()
+    await send_message(channel_id, ws, hist)
+
+
+def get_detailed_history():
+    return [
+            {
+                "type": "Message",
+                "message": {
+                    "content": msg["content"],
+                    "username": "ai" if msg["role"] == "assistant" else msg["role"],
+                    "id": "1",
+                    "timestamp": str(msg["date"])
+                    }
+                }
+            for msg in history if msg["role"] != "system"
+            ]
