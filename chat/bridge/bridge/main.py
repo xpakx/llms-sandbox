@@ -29,7 +29,7 @@ app.add_middleware(
         )
 config = load_config("config.json")
 client = get_client(config["apiKey"])
-history = [{"role": "system", "content": config["systemPrompt"]}]
+history = [{"role": "system", "content": config["systemPrompt"], "date": datetime.now()}]
 
 
 @app.websocket("/ws/websocket")
@@ -47,7 +47,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     channel_id = match.group(1)
                     print("Topic to subscribe:", channel_id)
                     channels[channel_id].add(websocket)
-                    await send_message(channel_id, websocket, [{"type":"Message", "message": {"content":"tst", "username":"me", "id":"1", "timestamp":"01-01-1970"}}])
+                    await send_messages_on_subscription(channel_id, websocket)
             else:
                 print(data)
     except WebSocketDisconnect:
@@ -82,20 +82,25 @@ async def send_message(channel_id: str, ws: WebSocket, message: Any):
     await ws.send_text(msg)
 
 
+def get_history():
+    return list(map(lambda x: {"role": x["role"], "content": x["content"]}, history))
+
+
 def chat(client: OpenAI, config):
     response = ""
     try:
-        response = ask_deepseek(client, history)
+        response = ask_deepseek(client, get_history())
     except Exception as e:
         return {"type": "Error"}
-    history.append({"role": "assistant", "content": response})
+    time = datetime.now()
+    history.append({"role": "assistant", "content": response, "date": time})
     return { 
             "type": "Message",
             "message": {
                 "content": response,
                 "username": "ai",
                 "id": "1",
-                "timestamp": str(datetime.now())
+                "timestamp": str(time)
                 }
             }
     
@@ -110,7 +115,8 @@ async def process_response(client: OpenAI, config, message, channel):
 # with fibonacci backoff
 async def process_response_fib(client: OpenAI, config, message, channel):
     query = message['message']['content']
-    history.append({"role": "user", "content": query})
+    time = datetime.now()
+    history.append({"role": "user", "content": query, "date": time})
 
     max_retries = 5
     fib_prev, fib_curr = 0, 1
@@ -142,6 +148,9 @@ async def send_message_to_channel(channel_id: str, index: int):
                 "content": msg['content'],
                 "username": msg['role'],
                 "id": "1",
-                "timestamp": str(datetime.now())
+                "timestamp": str(msg['date'])
                 }
             }
+
+async def send_messages_on_subscription(channel_id: str, ws: WebSocket):
+    await send_message(channel_id, ws, [{"type":"Message", "message": {"content":"tst", "username":"me", "id":"1", "timestamp":"01-01-1970"}}])
