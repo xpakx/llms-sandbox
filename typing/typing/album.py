@@ -2,6 +2,7 @@ import sqlite3
 import argparse
 from main import load_config, get_client, find_content
 from scrapping import get_page
+from urllib.parse import urlparse, urlunparse
 
 
 def execute_sql_file(cursor, sql_file):
@@ -47,9 +48,24 @@ def get_selectors_by_url(cursor, url):
         return None, None
 
 
+def parse_url(url):
+    parsed = urlparse(url)
+    if not parsed.scheme:
+        parsed = parsed._replace(scheme='https')
+    return urlunparse(parsed)
+
+
+def normalize_url(url):
+    parsed = urlparse(url)
+    normalized_url = urlunparse((parsed.scheme, parsed.netloc, '', '', '', ''))
+    return normalized_url
+
+
 def add_url(cursor, client, url):
     print(f"Adding URL: {args.url}")
-    title_selector, content_selector = get_selectors_by_url(cursor, url)
+    url = parse_url(url)
+    main_url = normalize_url(url)
+    title_selector, content_selector = get_selectors_by_url(cursor, main_url)
 
     if title_selector and content_selector:
         print("Already added!")
@@ -57,8 +73,12 @@ def add_url(cursor, client, url):
         print(f"Content Selector: {content_selector}")
     else:
         print(f"No selectors found for URL: {url}")
+        print(main_url)
         html = get_page(url)
         data = find_content(client, html)
+        if not data:
+            print("Couldn't find selectors.")
+            return
         print(data)
 
 
