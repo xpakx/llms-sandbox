@@ -61,6 +61,18 @@ def normalize_url(url):
     return normalized_url
 
 
+def find_rss_link(html):
+    try:
+        rss_links = []
+        for link in html.css('link'):
+            if link.attributes.get('type') in ['application/rss+xml', 'application/atom+xml']:
+                rss_links.append(link.attributes.get('href'))
+        return rss_links[0] if rss_links else None
+    except Exception as e:
+        print(f"Error fetching or parsing: {e}")
+        return None
+
+
 def add_url(cursor, client, url):
     print(f"Adding URL: {args.url}")
     url = parse_url(url)
@@ -80,6 +92,11 @@ def add_url(cursor, client, url):
             print("Couldn't find selectors.")
             return
         print(data)
+        rss = find_rss_link(html)
+        if not rss:
+            print("No RSS feed!")
+        else:
+            print(rss)
 
 
 def check_urls(cursor):
