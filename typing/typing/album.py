@@ -2,7 +2,7 @@ import sqlite3
 import argparse
 from main import load_config, get_client, find_content
 from scrapping import get_page
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse, urljoin
 
 
 def execute_sql_file(cursor, sql_file):
@@ -73,6 +73,13 @@ def find_rss_link(html):
         return None
 
 
+def add_url_to_db(cursor, url, rss_uri, title_selector, content_selector):
+    cursor.execute('''
+        INSERT INTO sites (uri, rss_uri, title_selector, content_selector)
+        VALUES (?, ?, ?, ?)
+    ''', (url, rss_uri, title_selector, content_selector))
+
+
 def add_url(cursor, client, url):
     print(f"Adding URL: {args.url}")
     url = parse_url(url)
@@ -92,11 +99,14 @@ def add_url(cursor, client, url):
             print("Couldn't find selectors.")
             return
         print(data)
+
         rss = find_rss_link(html)
         if not rss:
             print("No RSS feed!")
         else:
+            rss = urljoin(main_url, rss)
             print(rss)
+        add_url_to_db(cursor, main_url, rss, data.title, data.content)
 
 
 def check_urls(cursor):
