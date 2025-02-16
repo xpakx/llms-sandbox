@@ -1,5 +1,7 @@
 import sqlite3
 import argparse
+from main import load_config, get_client, find_content
+from scrapping import get_page
 
 
 def execute_sql_file(cursor, sql_file):
@@ -30,8 +32,34 @@ def get_parser():
     return parser
 
 
-def add_url(cursor, url):
+def get_selectors_by_url(cursor, url):
+    query = '''
+        SELECT title_selector, content_selector
+        FROM sites
+        WHERE uri = ?
+    '''
+    cursor.execute(query, (url,))
+    result = cursor.fetchone()
+    if result:
+        title_selector, content_selector = result
+        return title_selector, content_selector
+    else:
+        return None, None
+
+
+def add_url(cursor, client, url):
     print(f"Adding URL: {args.url}")
+    title_selector, content_selector = get_selectors_by_url(cursor, url)
+
+    if title_selector and content_selector:
+        print("Already added!")
+        print(f"Title Selector: {title_selector}")
+        print(f"Content Selector: {content_selector}")
+    else:
+        print(f"No selectors found for URL: {url}")
+        html = get_page(url)
+        data = find_content(client, html)
+        print(data)
 
 
 def check_urls(cursor):
@@ -51,9 +79,11 @@ if __name__ == "__main__":
     execute_sql_file(cursor, "data.sql")
     conn.commit()
     # show_tables(cursor)
+    config = load_config("config.json")
+    client = get_client(config["apiKey"])
 
     if args.command == "url" and args.subcommand == "add":
-        add_url(cursor, args.url)
+        add_url(cursor, client, args.url)
         conn.commit()
     elif args.command == "check" or args.command == None:
         check_urls(cursor)
