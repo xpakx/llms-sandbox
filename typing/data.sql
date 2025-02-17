@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS albums (
     name TEXT NOT NULL,
     author TEXT NOT NULL,
     summary TEXT,
+    uri TEXT NOT NULL,
     probability INTEGER
 );
 
@@ -34,7 +35,7 @@ CREATE TABLE IF NOT EXISTS album_tags (
 
 CREATE TABLE IF NOT EXISTS sites (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    uri TEXT NOT NULL,
+    url TEXT NOT NULL,
     rss_uri TEXT,
     title_selector TEXT NOT NULL,
     content_selector TEXT NOT NULL

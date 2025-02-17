@@ -1,9 +1,11 @@
 import sqlite3
 import argparse
-from main import load_config, get_client, find_content
-from scrapping import get_page
+from main import load_config, get_client, find_content, CssExtractionInfo
+from scrapping import get_page, extract_content
 from urllib.parse import urlparse, urlunparse, urljoin
 import feedparser
+import time
+from music import album_evaluation
 
 
 def execute_sql_file(cursor, sql_file):
@@ -122,7 +124,7 @@ def get_sites(cursor):
 
 def get_albums(rss_url):
     if not rss_url:
-        return []
+        return [] # TODO
     feed = feedparser.parse(rss_url)
     return [entry.link for entry in feed.entries]
 
@@ -137,7 +139,20 @@ def check_urls(cursor):
     for site in sites:
         print(site[1])
         albums = get_albums(site[2])
-        print(albums)
+        for album in albums:
+            time.sleep(1)
+            html = get_page(album)
+            extr = {"title": site[3], "content": site[4]}
+            css = CssExtractionInfo(**extr)
+            event = extract_content(html, css)
+            evaluation = album_evaluation(client, f"<h1>{event['title']}</h1> {event['content']}")
+            save_album(evaluation)
+
+
+def save_album(album):
+    if not album:
+        return
+    print(album)
 
 
 def view(cursor):
