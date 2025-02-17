@@ -109,8 +109,25 @@ def add_url(cursor, client, url):
         add_url_to_db(cursor, main_url, rss, data.title, data.content)
 
 
+def get_sites(cursor):
+    query = '''
+        SELECT id, uri, rss_uri, title_selector, content_selector
+        FROM sites
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return result
+
+
 def check_urls(cursor):
     print("Checking all URLs in the database")
+    sites = get_sites(cursor)
+    print(sites)
+    if not sites:
+        print("No URLs in the database.")
+        return
+    for site in sites:
+        print(site[1])
 
 
 def view(cursor):

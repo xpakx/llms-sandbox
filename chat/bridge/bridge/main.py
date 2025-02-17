@@ -96,7 +96,8 @@ def chat(client: OpenAI, config):
     try:
         response = ask_deepseek(client, get_history())
     except Exception as e:
-        return {"type": "Error"}
+        print(e)
+        return {"type": f"Error, {e}"}
     time = datetime.now()
     msg = {"role": "assistant", "content": response, "date": time}
     history.append(msg)
