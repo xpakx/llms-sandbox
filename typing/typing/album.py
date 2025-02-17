@@ -201,8 +201,19 @@ def album_exists_by_url(cursor, url):
     return exists
 
 
+def view_albums(cursor):
+    query = '''
+        SELECT name, author, summary, probability, uri
+        FROM albums
+    '''
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return result
+
+
 def view(cursor):
     print("Viewing all data in the database")
+    print(view_albums(cursor))
 
 
 if __name__ == "__main__":
