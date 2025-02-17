@@ -3,6 +3,7 @@ import argparse
 from main import load_config, get_client, find_content
 from scrapping import get_page
 from urllib.parse import urlparse, urlunparse, urljoin
+import feedparser
 
 
 def execute_sql_file(cursor, sql_file):
@@ -119,6 +120,13 @@ def get_sites(cursor):
     return result
 
 
+def get_albums(rss_url):
+    if not rss_url:
+        return []
+    feed = feedparser.parse(rss_url)
+    return [entry.link for entry in feed.entries]
+
+
 def check_urls(cursor):
     print("Checking all URLs in the database")
     sites = get_sites(cursor)
@@ -128,6 +136,8 @@ def check_urls(cursor):
         return
     for site in sites:
         print(site[1])
+        albums = get_albums(site[2])
+        print(albums)
 
 
 def view(cursor):
