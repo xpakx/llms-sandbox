@@ -140,19 +140,65 @@ def check_urls(cursor):
         print(site[1])
         albums = get_albums(site[2])
         for album in albums:
+            if album_exists_by_url(cursor, album):
+                continue
             time.sleep(1)
             html = get_page(album)
             extr = {"title": site[3], "content": site[4]}
             css = CssExtractionInfo(**extr)
             event = extract_content(html, css)
-            evaluation = album_evaluation(client, f"<h1>{event['title']}</h1> {event['content']}")
-            save_album(evaluation)
+            try:
+                evaluation = album_evaluation(client, f"<h1>{event['title']}</h1> {event['content']}")
+                if not evaluation:
+                    continue
+            except Exception as e:
+                continue
+            save_album(cursor, evaluation, album)
 
 
-def save_album(album):
+def get_tag(cursor, name):
+    cursor.execute(f'SELECT id FROM tags WHERE name = ?', (name,))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+    else:
+        cursor.execute(f'INSERT INTO tags (name) VALUES (?)', (name,))
+        return cursor.lastrowid
+
+
+def get_genre(cursor, name):
+    cursor.execute(f'SELECT id FROM genres WHERE name = ?', (name,))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+    else:
+        cursor.execute(f'INSERT INTO genres (name) VALUES (?)', (name,))
+        return cursor.lastrowid
+
+
+def save_album(cursor, album, uri):
     if not album:
         return
     print(album)
+    cursor.execute('''
+        INSERT INTO albums (name, author, summary, uri, probability)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (album.name, album.author, album.summary, uri, album.probability))
+    album_id = cursor.lastrowid
+
+    for genre_name in album.genres:
+        genre_id = get_genre(cursor, genre_name)
+        cursor.execute('INSERT INTO album_genres (album_id, genre_id) VALUES (?, ?)', (album_id, genre_id))
+
+    for tag_name in album.tags:
+        tag_id = get_tag(cursor, tag_name)
+        cursor.execute('INSERT INTO album_tags (album_id, tag_id) VALUES (?, ?)', (album_id, tag_id))
+
+
+def album_exists_by_url(cursor, url):
+    cursor.execute("SELECT EXISTS(SELECT 1 FROM albums WHERE uri = ? LIMIT 1)", (url,))
+    exists = cursor.fetchone()[0]
+    return exists
 
 
 def view(cursor):
@@ -176,6 +222,7 @@ if __name__ == "__main__":
         conn.commit()
     elif args.command == "check" or args.command == None:
         check_urls(cursor)
+        conn.commit()
     elif args.command == "view":
         view(cursor)
     else:

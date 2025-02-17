@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS album_tags (
 
 CREATE TABLE IF NOT EXISTS sites (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url TEXT NOT NULL,
+    uri TEXT NOT NULL,
     rss_uri TEXT,
     title_selector TEXT NOT NULL,
     content_selector TEXT NOT NULL
