@@ -1,12 +1,13 @@
 import sqlite3
-from main import load_config, get_client, find_content, CssExtractionInfo
-from scrapping import get_page, extract_content
 from urllib.parse import urljoin
 import time
-from music import album_evaluation
+
+from ai.music import album_evaluation
 from db.utils import execute_sql_file, show_tables
 from db.repo.site import get_selectors_by_url, add_url_to_db, get_sites
 from db.repo.album import save_album, view_albums, album_exists_by_url
+from main import load_config, get_client, find_content, CssExtractionInfo
+from scrapping import get_page, extract_content
 from utils.url import parse_url, normalize_url
 from utils.console import get_parser
 from utils.rss import find_rss_link, get_albums_rss

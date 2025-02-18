@@ -2,8 +2,6 @@ from pydantic import BaseModel
 from openai import OpenAI
 from typing import Dict, Any
 import json
-from main import load_config, get_client, CssExtractionInfo
-from scrapping import extract_content, get_page
 
 
 class AlbumEvaluation(BaseModel):
@@ -36,17 +34,3 @@ def album_evaluation(client: OpenAI, msg: str):
             )
 
     return completion.choices[0].message.parsed
-
-
-
-if __name__ == "__main__":
-    config = load_config("config.json")
-    client = get_client(config["apiKey"])
-    title_extractor = 'h3.post-title.entry-title'
-    content_extractor='div.post-body.entry-content'
-    css_dict = {'title': title_extractor, 'content': content_extractor}
-    css = CssExtractionInfo(**css_dict)
-    html = get_page("https://diskoryxeion.blogspot.com/2025/02/almufaraka.html")
-    album = extract_content(html, css)
-    event = album_evaluation(client, album['content'])
-    print(event)

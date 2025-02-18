@@ -65,7 +65,8 @@ def find_content(client: OpenAI, url: str):
 
     return completion.choices[0].message.parsed
 
-if __name__ == "__main__":
+
+def extraction_example():
     config = load_config("config.json")
     client = get_client(config["apiKey"])
     # event = event_extraction(client, "Alice and Bob are going to a science fair on Friday.")
@@ -74,3 +75,24 @@ if __name__ == "__main__":
     print(data)
     event = extract_content(html, data)
     print(event)
+
+
+def album_example():
+    from ai.music import album_evaluation
+    from scrapping import extract_content, get_page
+
+    config = load_config("config.json")
+    client = get_client(config["apiKey"])
+    title_extractor = 'h3.post-title.entry-title'
+    content_extractor='div.post-body.entry-content'
+    css_dict = {'title': title_extractor, 'content': content_extractor}
+    css = CssExtractionInfo(**css_dict)
+    html = get_page("https://diskoryxeion.blogspot.com/2025/02/almufaraka.html")
+    album = extract_content(html, css)
+    event = album_evaluation(client, album['content'])
+    print(event)
+
+
+if __name__ == "__main__":
+    extraction_example()
+    # album_example()
