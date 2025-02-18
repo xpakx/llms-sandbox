@@ -6,20 +6,8 @@ from urllib.parse import urlparse, urlunparse, urljoin
 import feedparser
 import time
 from music import album_evaluation
-
-
-def execute_sql_file(cursor, sql_file):
-    with open(sql_file, 'r') as file:
-        sql_script = file.read()
-    cursor.executescript(sql_script)
-
-
-def show_tables(cursor):
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    tables = cursor.fetchall()
-    print("Tables in the database:")
-    for table in tables:
-        print(table[0])
+from db.utils import execute_sql_file, show_tables
+from db.repo.site import get_selectors_by_url, add_url_to_db, get_sites
 
 
 def get_parser():
@@ -34,21 +22,6 @@ def get_parser():
     parser_check = subparsers.add_parser("check", help="Check all URLs in the database for new albums")
     parser_view = subparsers.add_parser("view", help="Print all albums in the database")
     return parser
-
-
-def get_selectors_by_url(cursor, url):
-    query = '''
-        SELECT title_selector, content_selector
-        FROM sites
-        WHERE uri = ?
-    '''
-    cursor.execute(query, (url,))
-    result = cursor.fetchone()
-    if result:
-        title_selector, content_selector = result
-        return title_selector, content_selector
-    else:
-        return None, None
 
 
 def parse_url(url):
@@ -74,13 +47,6 @@ def find_rss_link(html):
     except Exception as e:
         print(f"Error fetching or parsing: {e}")
         return None
-
-
-def add_url_to_db(cursor, url, rss_uri, title_selector, content_selector):
-    cursor.execute('''
-        INSERT INTO sites (uri, rss_uri, title_selector, content_selector)
-        VALUES (?, ?, ?, ?)
-    ''', (url, rss_uri, title_selector, content_selector))
 
 
 def add_url(cursor, client, url):
@@ -110,16 +76,6 @@ def add_url(cursor, client, url):
             rss = urljoin(main_url, rss)
             print(rss)
         add_url_to_db(cursor, main_url, rss, data.title, data.content)
-
-
-def get_sites(cursor):
-    query = '''
-        SELECT id, uri, rss_uri, title_selector, content_selector
-        FROM sites
-    '''
-    cursor.execute(query)
-    result = cursor.fetchall()
-    return result
 
 
 def get_albums(rss_url):
