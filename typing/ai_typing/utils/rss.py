@@ -1,6 +1,5 @@
 import feedparser
 
-
 def find_rss_link(html):
     try:
         rss_links = []
