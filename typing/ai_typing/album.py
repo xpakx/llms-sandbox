@@ -4,7 +4,7 @@ import time
 
 from ai_typing.ai.css import find_content, CssExtractionInfo
 from ai_typing.ai.music import album_evaluation
-from ai_typing.config import load_config, get_client
+from ai_typing.config import load_config, get_client, load_prompt
 from ai_typing.db.utils import execute_sql_file, show_tables
 from ai_typing.db.repo.site import get_selectors_by_url, add_url_to_db, get_sites
 from ai_typing.db.repo.album import save_album, view_albums, album_exists_by_url
@@ -14,7 +14,7 @@ from ai_typing.utils.console import get_parser
 from ai_typing.utils.rss import find_rss_link, get_albums_rss
 
 
-def add_url(cursor, client, url):
+def add_url(cursor, client, url, prompt):
     print(f"Adding URL: {args.url}")
     url = parse_url(url)
     main_url = normalize_url(url)
@@ -28,7 +28,7 @@ def add_url(cursor, client, url):
         print(f"No selectors found for URL: {url}")
         print(main_url)
         html = get_page(url)
-        data = find_content(client, html)
+        data = find_content(client, html, prompt)
         if not data:
             print("Couldn't find selectors.")
             return
@@ -43,7 +43,7 @@ def add_url(cursor, client, url):
         add_url_to_db(cursor, main_url, rss, data.title, data.content)
 
 
-def check_urls(cursor):
+def check_urls(cursor, prompt):
     print("Checking all URLs in the database")
     sites = get_sites(cursor)
     print(sites)
@@ -62,7 +62,7 @@ def check_urls(cursor):
             css = CssExtractionInfo(**extr)
             event = extract_content(html, css)
             try:
-                evaluation = album_evaluation(client, f"<h1>{event['title']}</h1> {event['content']}")
+                evaluation = album_evaluation(client, f"<h1>{event['title']}</h1> {event['content']}", prompt)
                 if not evaluation:
                     continue
             except Exception as e:
@@ -79,6 +79,10 @@ if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args()
 
+    taste = "experimental jazz, vocal experimentation, not too crazy about ambient"
+    prompt = load_prompt("album_evaluation.md", taste=taste)
+    css_prompt = load_prompt("css_extractors.md")
+
     conn = sqlite3.connect('albums.db')
     cursor = conn.cursor()
     execute_sql_file(cursor, "data.sql")
@@ -88,10 +92,10 @@ if __name__ == "__main__":
     client = get_client(config["apiKey"])
 
     if args.command == "url" and args.subcommand == "add":
-        add_url(cursor, client, args.url)
+        add_url(cursor, client, args.url, css_prompt)
         conn.commit()
     elif args.command == "check" or args.command == None:
-        check_urls(cursor)
+        check_urls(cursor, prompt)
         conn.commit()
     elif args.command == "view":
         view(cursor)
