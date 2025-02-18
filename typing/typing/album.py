@@ -1,53 +1,15 @@
 import sqlite3
-import argparse
 from main import load_config, get_client, find_content, CssExtractionInfo
 from scrapping import get_page, extract_content
-from urllib.parse import urlparse, urlunparse, urljoin
-import feedparser
+from urllib.parse import urljoin
 import time
 from music import album_evaluation
 from db.utils import execute_sql_file, show_tables
 from db.repo.site import get_selectors_by_url, add_url_to_db, get_sites
 from db.repo.album import save_album, view_albums, album_exists_by_url
-
-
-def get_parser():
-    parser = argparse.ArgumentParser(description="A program to manage albums.")
-    subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
-
-    parser_url = subparsers.add_parser("url", help="Manage URLs")
-    url_subparsers = parser_url.add_subparsers(dest="subcommand", help="Available subcommands")
-    parser_url_add = url_subparsers.add_parser("add", help="Add a new URL to track")
-    parser_url_add.add_argument("url", type=str, help="The URL to add")
-
-    parser_check = subparsers.add_parser("check", help="Check all URLs in the database for new albums")
-    parser_view = subparsers.add_parser("view", help="Print all albums in the database")
-    return parser
-
-
-def parse_url(url):
-    parsed = urlparse(url)
-    if not parsed.scheme:
-        parsed = parsed._replace(scheme='https')
-    return urlunparse(parsed)
-
-
-def normalize_url(url):
-    parsed = urlparse(url)
-    normalized_url = urlunparse((parsed.scheme, parsed.netloc, '', '', '', ''))
-    return normalized_url
-
-
-def find_rss_link(html):
-    try:
-        rss_links = []
-        for link in html.css('link'):
-            if link.attributes.get('type') in ['application/rss+xml', 'application/atom+xml']:
-                rss_links.append(link.attributes.get('href'))
-        return rss_links[0] if rss_links else None
-    except Exception as e:
-        print(f"Error fetching or parsing: {e}")
-        return None
+from utils.url import parse_url, normalize_url
+from utils.console import get_parser
+from utils.rss import find_rss_link, get_albums_rss
 
 
 def add_url(cursor, client, url):
@@ -79,13 +41,6 @@ def add_url(cursor, client, url):
         add_url_to_db(cursor, main_url, rss, data.title, data.content)
 
 
-def get_albums(rss_url):
-    if not rss_url:
-        return [] # TODO
-    feed = feedparser.parse(rss_url)
-    return [entry.link for entry in feed.entries]
-
-
 def check_urls(cursor):
     print("Checking all URLs in the database")
     sites = get_sites(cursor)
@@ -95,7 +50,7 @@ def check_urls(cursor):
         return
     for site in sites:
         print(site[1])
-        albums = get_albums(site[2])
+        albums = get_albums_rss(site[2])
         for album in albums:
             if album_exists_by_url(cursor, album):
                 continue
