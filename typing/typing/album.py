@@ -8,6 +8,7 @@ import time
 from music import album_evaluation
 from db.utils import execute_sql_file, show_tables
 from db.repo.site import get_selectors_by_url, add_url_to_db, get_sites
+from db.repo.album import save_album, view_albums, album_exists_by_url
 
 
 def get_parser():
@@ -110,61 +111,6 @@ def check_urls(cursor):
             except Exception as e:
                 continue
             save_album(cursor, evaluation, album)
-
-
-def get_tag(cursor, name):
-    cursor.execute(f'SELECT id FROM tags WHERE name = ?', (name,))
-    result = cursor.fetchone()
-    if result:
-        return result[0]
-    else:
-        cursor.execute(f'INSERT INTO tags (name) VALUES (?)', (name,))
-        return cursor.lastrowid
-
-
-def get_genre(cursor, name):
-    cursor.execute(f'SELECT id FROM genres WHERE name = ?', (name,))
-    result = cursor.fetchone()
-    if result:
-        return result[0]
-    else:
-        cursor.execute(f'INSERT INTO genres (name) VALUES (?)', (name,))
-        return cursor.lastrowid
-
-
-def save_album(cursor, album, uri):
-    if not album:
-        return
-    print(album)
-    cursor.execute('''
-        INSERT INTO albums (name, author, summary, uri, probability)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (album.name, album.author, album.summary, uri, album.probability))
-    album_id = cursor.lastrowid
-
-    for genre_name in album.genres:
-        genre_id = get_genre(cursor, genre_name)
-        cursor.execute('INSERT INTO album_genres (album_id, genre_id) VALUES (?, ?)', (album_id, genre_id))
-
-    for tag_name in album.tags:
-        tag_id = get_tag(cursor, tag_name)
-        cursor.execute('INSERT INTO album_tags (album_id, tag_id) VALUES (?, ?)', (album_id, tag_id))
-
-
-def album_exists_by_url(cursor, url):
-    cursor.execute("SELECT EXISTS(SELECT 1 FROM albums WHERE uri = ? LIMIT 1)", (url,))
-    exists = cursor.fetchone()[0]
-    return exists
-
-
-def view_albums(cursor):
-    query = '''
-        SELECT name, author, summary, probability, uri
-        FROM albums
-    '''
-    cursor.execute(query)
-    result = cursor.fetchall()
-    return result
 
 
 def view(cursor):
