@@ -49,8 +49,14 @@ def get_album(artist: str, title: str):
     else:
         print("Album not found in MusicBrainz")
 
+    print('\nLinks:')
     link = find_bandcamp_link(artist, title)
     print(link)
+
+    time.sleep(1)
+    cover = get_album_cover(album['id'])
+    if cover:
+        download_image(cover, "cover.jpg")
 
 
 def get_tracks(release_id: str):
@@ -79,6 +85,27 @@ def find_bandcamp_link(artist, title):
     attrs = results[0].attributes
     if 'href' in attrs:
         return attrs['href'].split('?')[0]
+
+
+def get_album_cover(id):
+    url = f"https://coverartarchive.org/release/{id}"
+    headers = {"User-Agent": USER_AGENT}
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        if 'images' in data and data['images']:
+            return data['images'][0]['thumbnails']['500']
+    return None
+
+
+def download_image(image_url, filename):
+    response = requests.get(image_url)
+    if response.status_code == 200:
+        with open(filename, 'wb') as f:
+            f.write(response.content)
+        print(f"Downloaded {filename}")
+    else:
+        print(f"Failed to download image: {filename}")
 
 
 if __name__ == "__main__":
