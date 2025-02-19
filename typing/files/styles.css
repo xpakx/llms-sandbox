@@ -21,7 +21,7 @@ body {
 }
 
 .album-art img {
-    max-width: 300px; /* fixed size 💅 */
+    max-width: 300px;
     height: auto;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
