@@ -3,6 +3,8 @@ import requests
 import time
 from selectolax.parser import HTMLParser
 from urllib.parse import quote
+from string import Template
+from pathlib import Path
 
 
 USER_AGENT = "LLMSForMusicSandbox/0.1 ( github.com/xpakx/llms-sandbox )"
@@ -31,12 +33,16 @@ def get_album(artist: str, title: str):
     if album and album['id']:
         print(title)
         print(f"by {artist}\n")
-        print(f"Released: {album['date']}")
-        print(album['release-group']['primary-type'])
-        print(f"Label: {album['label-info'][0]['label']['name']}")
+        date = album['date']
+        print(f"Released: {date}")
+        release_type = album['release-group']['primary-type']
+        print(release_type)
+        label = album['label-info'][0]['label']['name']
+        print(f"Label: {label}")
 
         time.sleep(1)
         tracks = get_tracks(album['id'])
+        tracks_str = ""
         print('\nTracklist:')
         for track in tracks['tracks']:
             no = track['number']
@@ -45,9 +51,11 @@ def get_album(artist: str, title: str):
             minutes, seconds = divmod(seconds, 60)
             printlen = f"{minutes:02d}:{seconds:02d}"
             print(f"{no}. {song} ({printlen})")
+            tracks_str += f"<li>{no}. {song} ({printlen})</li>\n"
 
     else:
         print("Album not found in MusicBrainz")
+        return
 
     print('\nLinks:')
     link = find_bandcamp_link(artist, title)
@@ -55,8 +63,15 @@ def get_album(artist: str, title: str):
 
     time.sleep(1)
     cover = get_album_cover(album['id'])
+
+    Path("dist").mkdir(exist_ok=True)
     if cover:
-        download_image(cover, "cover.jpg")
+        download_image(cover, "dist/cover.jpg")
+    genres = "<span>american primitivism</span>\n<span>folk</span>"
+    tags = "<span>#fingerpicking</span>\n<span>#solo guitar</span>"
+    description = "Shane Parish's <em>Repertoire</em> is a stunning collection of reimagined classics, showcasing his virtuosic guitar work and unique interpretive style."
+    html = generate_html(artist, title, date, tracks_str, "★ ★ ★ ½", genres, tags, description)
+    saveTo(html, "dist/index.html")
 
 
 def get_tracks(release_id: str):
@@ -107,6 +122,26 @@ def download_image(image_url, filename):
     else:
         print(f"Failed to download image: {filename}")
 
+
+def generate_html(artist, title, date, tracks, rating, genres, tags, description) -> str:
+    with open('files/index.html', 'r') as file:
+        content = file.read()
+    template = Template(content)
+    return template.substitute(
+            artist=artist,
+            title=title,
+            date=date,
+            tracks=tracks,
+            rating=rating,
+            genres=genres,
+            tags=tags,
+            description=description)
+
+
+def saveTo(data: str, filename: str):
+    f = open(filename, "w")
+    f.write(data)
+    f.close()
 
 if __name__ == "__main__":
     get_album("Shane Parish", "Repertoire")
