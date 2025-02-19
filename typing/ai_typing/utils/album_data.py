@@ -1,6 +1,8 @@
 import json
 import requests
 import time
+from selectolax.parser import HTMLParser
+from urllib.parse import quote
 
 
 USER_AGENT = "LLMSForMusicSandbox/0.1 ( github.com/xpakx/llms-sandbox )"
@@ -47,6 +49,9 @@ def get_album(artist: str, title: str):
     else:
         print("Album not found in MusicBrainz")
 
+    link = find_bandcamp_link(artist, title)
+    print(link)
+
 
 def get_tracks(release_id: str):
     url = f"https://musicbrainz.org/ws/2/release/{release_id}"
@@ -62,6 +67,18 @@ def get_tracks(release_id: str):
         return release_data['media'][0]
     return None
 
+
+def find_bandcamp_link(artist, title):
+    query = quote(f"{artist} {title}")
+    link = f"https://bandcamp.com/search?q={query}&item_type=a"
+    response = requests.get(link)
+    parser =  HTMLParser(response.text)
+    results = parser.css('li[class~="searchresult"] > a')
+    if len(results) == 0:
+        return None
+    attrs = results[0].attributes
+    if 'href' in attrs:
+        return attrs['href'].split('?')[0]
 
 
 if __name__ == "__main__":
