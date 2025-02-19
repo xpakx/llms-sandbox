@@ -187,6 +187,31 @@ def save_album(album: Album, description: str, rating: str) -> None:
             description)
     saveTo(html, "dist/index.html")
 
+
+def search_albums_by_artist(artist: str, limit: int = 100) -> Optional[List[Dict[str, Any]]]:
+    url = "https://musicbrainz.org/ws/2/release-group/"
+    headers = {"User-Agent": USER_AGENT}
+    params = {
+        "query": f'artist:"{artist}" AND primarytype:"album"',
+        "fmt": "json",
+        "limit": limit
+    }
+    response = requests.get(url, params=params, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        if data.get('release-groups'):
+            return data['release-groups']
+    return None
+
+
+def get_albums(artist: str) -> None:
+    albums = search_albums_by_artist(artist)
+    for album in albums:
+        print(album['title'])
+        print(album['first-release-date'])
+        print(album['id'])
+
+
 if __name__ == "__main__":
     album = get_album("Shane Parish", "Repertoire")
     description = "Shane Parish's <em>Repertoire</em> is a stunning collection of reimagined classics, showcasing his virtuosic guitar work and unique interpretive style."
