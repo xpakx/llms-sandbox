@@ -1,5 +1,9 @@
 import requests
+import time
 from typing import List, Optional, Dict, Any
+
+from album.model.album import Album
+from album.model.track import Track
 
 
 USER_AGENT = "LLMSForMusicSandbox/0.1 ( github.com/xpakx/llms-sandbox )"
@@ -61,3 +65,41 @@ def search_albums_by_artist(artist: str, limit: int = 100) -> Optional[List[Dict
         if data.get('release-groups'):
             return data['release-groups']
     return None
+
+
+def get_mb_album(artist: str, title: str) -> Optional[Album]:
+    print(f"Fetching album: {artist} - {title}.")
+    album = search_album(artist, title)
+
+    if album and album['id']:
+        title_fetched = album['title']
+        artist_fetched = album['artist-credit'][0]['name']
+        date = album.get('first-release-date', album.get('date', '1970-01-01')) # TODO
+        release_type = album['release-group']['primary-type'] if 'primary-type' in album['release-group'] else ""
+        label = album['label-info'][0]['label']['name']
+
+        time.sleep(1)
+        tracks_data = get_tracks(album['id'])
+        tracks = [
+            Track(number=track['number'], title=track['title'], length=track['length'])
+            for track in tracks_data['tracks']
+        ]
+    else:
+        print("Album not found in MusicBrainz")
+        return None
+
+
+    time.sleep(1)
+    cover = get_album_cover(album['id'])
+
+    return Album(
+        title=title_fetched,
+        artist=artist_fetched,
+        date=date,
+        release_type=release_type,
+        label=label,
+        tracks=tracks,
+        genres=[],
+        tags=[],
+        cover_url=cover
+    )
