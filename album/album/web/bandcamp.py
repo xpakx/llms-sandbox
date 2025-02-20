@@ -47,10 +47,12 @@ def get_bandcamp_album(artist: str, title: str) -> Optional[Album]:
     date_published = data.get('datePublished', 'Unknown')
     # description = data.get('description', 'No description available.')
     # credit_text = data.get('creditText', 'No credits available.')
+    title_fetched = data.get('name', '')
+    artist_fetched = data.get('byArtist',{}).get('name', '')
 
     return Album(
-        title=title,
-        artist=artist,
+        title=title_fetched,
+        artist=artist_fetched,
         date=date_published,
         release_type="Album",
         label="",
