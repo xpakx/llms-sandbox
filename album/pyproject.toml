@@ -1,5 +1,5 @@
 [project]
-name = "ai_typing"
+name = "album"
 version = "0.1.0"
 description = ""
 authors = [
@@ -8,9 +8,10 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "openai (>=1.61.1,<2.0.0)",
+    "openai (>=1.63.2,<2.0.0)",
     "requests (>=2.32.3,<3.0.0)",
-    "selectolax (>=0.3.27,<0.4.0)",
+    "selectolax (>=0.3.28,<0.4.0)",
+    "feedparser (>=6.0.11,<7.0.0)"
 ]
 
 

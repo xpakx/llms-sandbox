@@ -1,5 +1,5 @@
-from ai_typing.db.repo.tag import get_tag
-from ai_typing.db.repo.genre import get_genre
+from album.db.repo.tag import get_tag
+from album.db.repo.genre import get_genre
 
 def album_exists_by_url(cursor, url):
     cursor.execute("SELECT EXISTS(SELECT 1 FROM albums WHERE uri = ? LIMIT 1)", (url,))

@@ -2,16 +2,16 @@ import sqlite3
 from urllib.parse import urljoin
 import time
 
-from ai_typing.ai.css import find_content, CssExtractionInfo
-from ai_typing.ai.music import album_evaluation
-from ai_typing.config import load_config, get_client, load_prompt
-from ai_typing.db.utils import execute_sql_file, show_tables
-from ai_typing.db.repo.site import get_selectors_by_url, add_url_to_db, get_sites
-from ai_typing.db.repo.album import save_album, view_albums, album_exists_by_url
-from ai_typing.scrapping import get_page, extract_content
-from ai_typing.utils.url import parse_url, normalize_url
-from ai_typing.utils.console import get_parser
-from ai_typing.utils.rss import find_rss_link, get_albums_rss
+from album.ai.css import find_content, CssExtractionInfo
+from album.ai.music import album_evaluation
+from album.config import load_config, get_client, load_prompt
+from album.db.utils import execute_sql_file, show_tables
+from album.db.repo.site import get_selectors_by_url, add_url_to_db, get_sites
+from album.db.repo.album import save_album, view_albums, album_exists_by_url
+from album.scrapping import get_page, extract_content
+from album.utils.url import parse_url, normalize_url
+from album.utils.console import get_parser
+from album.utils.rss import find_rss_link, get_albums_rss
 
 
 def add_url(cursor, client, url, prompt):
