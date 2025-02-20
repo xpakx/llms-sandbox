@@ -1,10 +1,12 @@
 import time
 from typing import Optional
 from album.web.mb import search_albums_by_artist, get_album_cover, search_album, get_tracks
-from album.web.bandcamp import find_bandcamp_link, get_bandcamp_album
+from album.web.bandcamp import find_bandcamp_link
+from album.web.spotify import get_spotify_album
 from album.utils.files import save_album
 from album.model.album import Album
 from album.model.track import Track
+from album.config import load_config
 
 
 def get_album(artist: str, title: str) -> Optional[Album]:
@@ -54,8 +56,10 @@ def get_albums(artist: str) -> None:
 
 
 if __name__ == "__main__":
-    album = get_bandcamp_album("Shane Parish", "Repertoire")
+    config = load_config("config.json")
+    album = get_spotify_album(config, "Shane Parish", "Repertoire")
     print(album)
+
     # album = get_album("Shane Parish", "Repertoire")
     # description = "Shane Parish's <em>Repertoire</em> is a stunning collection of reimagined classics, showcasing his virtuosic guitar work and unique interpretive style."
     # rating = "★ ★ ★ ½"
