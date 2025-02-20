@@ -7,6 +7,7 @@ from album.utils.files import save_album
 from album.model.album import Album
 from album.model.track import Track
 from album.config import load_config
+from album.web.reviews.extractor import get_quietus_extractor, get_klofmag_extractor
 
 
 def get_album(artist: str, title: str) -> Optional[Album]:
@@ -56,9 +57,8 @@ def get_albums(artist: str) -> None:
 
 
 if __name__ == "__main__":
-    config = load_config("config.json")
-    album = get_spotify_album(config, "Shane Parish", "Repertoire")
-    print(album)
+    k = get_klofmag_extractor()
+    print(k.get_review("Shane Parish", "Repertoire"))
 
     # album = get_album("Shane Parish", "Repertoire")
     # description = "Shane Parish's <em>Repertoire</em> is a stunning collection of reimagined classics, showcasing his virtuosic guitar work and unique interpretive style."
