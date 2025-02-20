@@ -1,7 +1,7 @@
 import requests
 from selectolax.parser import HTMLParser
 from urllib.parse import quote
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import json
 import re
 
@@ -26,9 +26,16 @@ def get_bandcamp_data(link: str) -> Dict[str, Any]:
     response = requests.get(link)
     parser =  HTMLParser(response.text)
     result = parser.css_first('script[type="application/ld+json"]')
-    data = json.loads(result.text())
-    tracks_data = data['track']['itemListElement']
+    return json.loads(result.text())
 
+
+def get_bandcamp_album(artist: str, title: str) -> Optional[Album]:
+    link = find_bandcamp_link(artist, title)
+    if not link:
+        return None
+    data = get_bandcamp_data(link)
+
+    tracks_data = data.get('track', {}).get('itemListElement', [])
     tracks = [
         Track(
             number=track['position'],
@@ -36,12 +43,23 @@ def get_bandcamp_data(link: str) -> Dict[str, Any]:
             length=iso8601_duration_to_milliseconds(track['item']['duration']))
         for track in tracks_data if track['@type'] == 'ListItem'
     ]
-    print(tracks)
-    print(data['datePublished'])
-    print(data['description'])
-    print(data['creditText'])
 
-    return {}
+    date_published = data.get('datePublished', 'Unknown')
+    # description = data.get('description', 'No description available.')
+    # credit_text = data.get('creditText', 'No credits available.')
+
+    return Album(
+        title=title,
+        artist=artist,
+        date=date_published,
+        release_type="Album",
+        label="",
+        tracks=tracks,
+        genres=[],
+        tags=[],
+        cover_url=None,
+        bandcamp_link=link
+    )
 
 
 def iso8601_duration_to_milliseconds(duration):
