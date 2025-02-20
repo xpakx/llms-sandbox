@@ -1,7 +1,7 @@
 import time
 from typing import Optional
 from album.web.mb import search_albums_by_artist, get_album_cover, search_album, get_tracks
-from album.web.bandcamp import find_bandcamp_link
+from album.web.bandcamp import find_bandcamp_link, get_bandcamp_data
 from album.utils.files import save_album
 from album.model.album import Album
 from album.model.track import Track
@@ -53,8 +53,15 @@ def get_albums(artist: str) -> None:
         print(album['id'])
 
 
+def test_bandcamp(artist: str, title: str):
+    bandcamp_link = find_bandcamp_link(artist, title)
+    if not bandcamp_link:
+        return
+    get_bandcamp_data(bandcamp_link)
+
 if __name__ == "__main__":
-    album = get_album("Shane Parish", "Repertoire")
-    description = "Shane Parish's <em>Repertoire</em> is a stunning collection of reimagined classics, showcasing his virtuosic guitar work and unique interpretive style."
-    rating = "★ ★ ★ ½"
-    save_album(album, description, rating)
+    test_bandcamp("Shane Parish", "Repertoire")
+    # album = get_album("Shane Parish", "Repertoire")
+    # description = "Shane Parish's <em>Repertoire</em> is a stunning collection of reimagined classics, showcasing his virtuosic guitar work and unique interpretive style."
+    # rating = "★ ★ ★ ½"
+    # save_album(album, description, rating)
