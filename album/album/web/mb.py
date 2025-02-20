@@ -13,7 +13,7 @@ def search_album(artist: str, title: str) -> Optional[Dict[str, Any]]:
     url = "https://musicbrainz.org/ws/2/release/"
     headers = {"User-Agent": USER_AGENT}
     params = {
-        "query": f'artist:"{artist}" release:"{title}"',
+        "query": f'artist:"{artist}" release:"{title}" primarytype:"Album" status:"Official"',
         "fmt": "json",
         "limit": 1
     }
@@ -55,7 +55,7 @@ def search_albums_by_artist(artist: str, limit: int = 100) -> Optional[List[Dict
     url = "https://musicbrainz.org/ws/2/release-group/"
     headers = {"User-Agent": USER_AGENT}
     params = {
-        "query": f'artist:"{artist}" AND primarytype:"album"',
+        "query": f'artist:"{artist}" primarytype:"Album" status:"Official"',
         "fmt": "json",
         "limit": limit
     }
