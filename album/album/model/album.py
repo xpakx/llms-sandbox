@@ -18,8 +18,20 @@ class Album(BaseModel):
     bandcamp_link: Optional[str] = None
 
     def formatted_date(self) -> str:
-        date_obj = datetime.strptime(self.date, "%Y-%m-%d")
-        return date_obj.strftime("%B %d, %Y")
+        possible_formats = ["%Y-%m-%d", "%Y-%m", "%Y", "%d %b %Y %H:%M:%S %Z"]
+        
+        for fmt in possible_formats:
+            try:
+                date_obj = datetime.strptime(self.date, fmt)
+                if fmt == "%Y-%m":
+                    return date_obj.strftime("%B %Y")
+                elif fmt == "%Y":
+                    return date_obj.strftime("%Y")
+                else:
+                    return date_obj.strftime("%B %d, %Y")
+            except ValueError:
+                continue
+        return self.date
 
     def formatted_tracks(self) -> str:
         return "".join(f"<li>{track.number}. {track.title} ({track.formatted_length()})</li>\n" for track in self.tracks)

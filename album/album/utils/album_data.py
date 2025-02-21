@@ -19,17 +19,18 @@ def get_albums(artist: str) -> None:
         print(album['id'])
 
 def get_album(config, artist: str, name: str) -> Optional[Album]:
-    return get_mb_album(artist, name)
+    # return get_mb_album(artist, name)
     # return get_bandcamp_album(artist, name)
-    # return get_spotify_album(config,artist, name)
+    return get_spotify_album(config,artist, name)
 
 if __name__ == "__main__":
     config = load_config("config.json")
     album = get_album(config, "Shane Parish", "Repertoire")
-    description = "Shane Parish's <em>Repertoire</em> is a stunning collection of reimagined classics, showcasing his virtuosic guitar work and unique interpretive style."
-    rating = "★ ★ ★ ½"
-    genres = ["american primitivism", "folk"]
-    tags = ["fingerpicking", "solo guitar"]
-    album.genres = genres
-    album.tags = tags
-    save_album(album, description, rating)
+    if album:
+        description = "Shane Parish's <em>Repertoire</em> is a stunning collection of reimagined classics, showcasing his virtuosic guitar work and unique interpretive style."
+        rating = "★ ★ ★ ½"
+        genres = ["american primitivism", "folk"]
+        tags = ["fingerpicking", "solo guitar"]
+        album.genres = genres
+        album.tags = tags
+        save_album(album, description, rating)
