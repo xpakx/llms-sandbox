@@ -23,6 +23,7 @@ def save_album(album: Album, description: str, rating: str) -> None:
 def download_image(image_url: str, filename: str) -> None:
     response = requests.get(image_url)
     if response.status_code == 200:
+        # TODO: resize if too big
         with open(filename, 'wb') as f:
             f.write(response.content)
         print(f"Downloaded {filename}")

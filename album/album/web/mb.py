@@ -44,10 +44,17 @@ def get_album_cover(id: str) -> Optional[str]:
     url = f"https://coverartarchive.org/release/{id}"
     headers = {"User-Agent": USER_AGENT}
     response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        data = response.json()
-        if 'images' in data and data['images']:
-            return data['images'][0]['thumbnails']['500']
+    if response.status_code != 200:
+        return None
+    data = response.json()
+    covers = data.get('images', [])
+    if len(covers) == 0:
+        return None
+    cover = covers[0].get('thumbnails', {})
+    size_preferences = ['500', '300', 'large']
+    for size in size_preferences:
+        if size in cover:
+            return cover[size ]
     return None
 
 
