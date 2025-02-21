@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 class Track(BaseModel):
-    number: int
+    number: str
     title: str
     length: int  # Length in milliseconds
 
