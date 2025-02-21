@@ -57,14 +57,16 @@ def get_reviews(artist: str, title: str):
 
 
 if __name__ == "__main__":
+    title = "Repertoire"
+    artist = "Shane Parish"
     config = load_config("config.json")
     client = get_client(config["apiKey"])
-    album = get_album(config, "Shane Parish", "Repertoire")
+    album = get_album(config, artist, title)
     evaluation = None
     if album:
         description = ""
         rating = ""
-        evaluation = get_reviews("Shane Parish", "Repertoire")
+        evaluation = get_reviews(artist, title)
         if evaluation:
             description = evaluation.summary
             album.genres = evaluation.genres

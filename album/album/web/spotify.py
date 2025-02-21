@@ -77,7 +77,7 @@ def get_spotify_album(config: Dict[str, str], artist: str, title: str) -> Option
     tracks_data = album_details['tracks']['items']
     tracks = [
         Track(
-            number=track['track_number'],
+            number=str(track['track_number']),
             title=track['name'],
             length=track['duration_ms'])
         for track in tracks_data

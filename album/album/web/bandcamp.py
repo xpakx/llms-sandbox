@@ -38,7 +38,7 @@ def get_bandcamp_album(artist: str, title: str) -> Optional[Album]:
     tracks_data = data.get('track', {}).get('itemListElement', [])
     tracks = [
         Track(
-            number=track['position'],
+            number=str(track['position']),
             title=track['item']['name'],
             length=iso8601_duration_to_milliseconds(track['item']['duration']))
         for track in tracks_data if track['@type'] == 'ListItem'

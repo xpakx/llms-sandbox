@@ -83,7 +83,8 @@ def get_mb_album(artist: str, title: str) -> Optional[Album]:
         artist_fetched = album['artist-credit'][0]['name']
         date = album.get('first-release-date', album.get('date', '1970-01-01')) # TODO
         release_type = album['release-group']['primary-type'] if 'primary-type' in album['release-group'] else ""
-        label = album['label-info'][0]['label']['name']
+        labels = album.get('label-info', [])
+        label = labels[0].get('label', {}).get('name', '') if len(labels) > 0 else ''
 
         time.sleep(1)
         tracks_data = get_tracks(album['id'])
