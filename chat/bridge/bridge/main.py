@@ -167,5 +167,6 @@ async def reset_channel(channel_id: str):
     if channel not in channels:
         raise HTTPException(status_code=404, detail="Channel not found")
     system_msg = history[0]
-    history = [system_msg]
+    history.clear()
+    history.append(system_msg)
     await send_to_channel(channel, [{"type": "Clear"}])
