@@ -138,6 +138,7 @@ async def get_message_from_channel(channel_id: str, index: int):
         raise HTTPException(status_code=400, detail="Bad index")
     return to_response(history[i]) 
 
+
 async def send_messages_on_subscription(channel_id: str, ws: WebSocket):
     hist = get_detailed_history()
     await send_message(channel_id, ws, hist)
@@ -145,6 +146,7 @@ async def send_messages_on_subscription(channel_id: str, ws: WebSocket):
 
 def get_detailed_history():
     return [to_response(msg) for msg in history if msg["role"] != "system"]
+
 
 def to_response(msg):
     time = msg["date"].strftime("%Y-%m-%d %H:%M:%S")
@@ -157,3 +159,13 @@ def to_response(msg):
                     "timestamp": time
                     }
                 }
+
+
+@app.delete("/{channel_id}")
+async def reset_channel(channel_id: str):
+    channel = f"/topic/{channel_id}"
+    if channel not in channels:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    system_msg = history[0]
+    history = [system_msg]
+    await send_to_channel(channel, [{"type": "Clear"}])
