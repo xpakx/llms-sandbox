@@ -29,6 +29,9 @@ func main() {
 
 			printSubProgram(*verboseFlag)
 			return
+		case "reset":
+			resetChat();
+			return
 		}
 	}
 
@@ -165,4 +168,21 @@ func printSubProgram(verbose bool) {
 	} else {
 		fmt.Printf(message.Message.Content)
 	}
+}
+
+func resetChat() {
+	url := "http://localhost:8000/chat"
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("Error sending request: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
 }
