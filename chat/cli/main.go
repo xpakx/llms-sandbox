@@ -30,7 +30,10 @@ func main() {
 			printSubProgram(*verboseFlag)
 			return
 		case "reset":
-			resetChat();
+			resetChat(false);
+			return
+		case "compact":
+			resetChat(true);
 			return
 		}
 	}
@@ -170,8 +173,11 @@ func printSubProgram(verbose bool) {
 	}
 }
 
-func resetChat() {
+func resetChat(compact bool) {
 	url := "http://localhost:8000/chat"
+	if compact {
+		url = url + "/compact"
+	}
 
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {

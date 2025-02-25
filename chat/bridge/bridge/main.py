@@ -176,3 +176,66 @@ async def reset_channel(channel_id: str):
     history.clear()
     history.append(system_msg)
     await send_to_channel(channel, [{"type": "Clear"}])
+
+
+def get_history_for_summary():
+    hist = list(
+            map(
+                lambda x: {"role": x["role"], "content": x["content"]},
+                filter(lambda x: x["role"] != "system", history)
+                )
+           )
+
+    hist.insert(0, {
+        "role": "system",
+        "content": "Please summarize the key points of this conversation in two concise paragraphs. Focus on preserving the most important information, such as decisions made, actions to be taken, critical insights, or any significant outcomes. Ensure the summary is clear, coherent, and retains the context of the discussion."
+        })
+    return hist
+
+
+def summary(client: OpenAI, config, hist):
+    response = ""
+    try:
+        response = ask_deepseek(client, hist)
+    except Exception as e:
+        print(e)
+        return {"type": f"Error, {e}"}
+    time = datetime.now()
+    msg = {"role": "system", "content": response, "date": time}
+    return to_response(msg)
+
+
+async def summary_fib(client: OpenAI, config, channel):
+    base = 10
+    max_retries = 5
+    fib_prev, fib_curr = 0, 1
+    hist = get_history_for_summary()
+
+    for attempt in range(max_retries + 1):
+        response = summary(client, config, hist)
+        error = response.get('type') == 'Error'
+        content = response.get('message', {}).get('content')
+        empty = (content is None or content == '')
+        print(f"Response: {response}")
+        if not (error or empty):
+            system_msg = history[0]
+            history.clear()
+            history.append(system_msg)
+            content = f"Summary of conversation {response['message']['content']}"
+            history.append({"role": "system", "content": content, "date": datetime.now()})
+            await send_to_channel(channel, [{"type": "Clear"}])
+            return
+        if attempt < max_retries:
+            print("Retrying…")
+            await asyncio.sleep(fib_curr * base)
+            fib_prev, fib_curr = fib_curr, fib_prev + fib_curr
+
+    print("Max retries reached. Failed to process response.")
+
+
+@app.delete("/{channel_id}/compact")
+async def compact_channel(channel_id: str):
+    channel = f"/topic/{channel_id}"
+    if channel not in channels:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    asyncio.create_task(summary_fib(client, config, channel))
