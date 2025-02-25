@@ -62,7 +62,7 @@ async def send_message_to_channel(channel_id: str, message: Dict[str, Any]):
     channel = f"/topic/{channel_id}"
     if channel not in channels:
         raise HTTPException(status_code=404, detail="Channel not found")
-    query = message['content']
+    query = message['content'].strip()
     time = datetime.now()
     msg = {"role": "user", "content": query, "date": time}
     history.append(msg)
@@ -102,7 +102,7 @@ def chat(client: OpenAI, config):
     msg = {"role": "assistant", "content": response, "date": time}
     history.append(msg)
     return to_response(msg)
-    
+
 
 async def process_response(client: OpenAI, config, message, channel):
     query = message['content']
@@ -113,17 +113,23 @@ async def process_response(client: OpenAI, config, message, channel):
 
 # with fibonacci backoff
 async def process_response_fib(client: OpenAI, config, channel):
+    base = 10
     max_retries = 5
     fib_prev, fib_curr = 0, 1
 
-    for attempt in range(max_retries):
+    for attempt in range(max_retries + 1):
         response = chat(client, config)
-        if response.get('type') != 'Error':
+        error = response.get('type') == 'Error'
+        content = response.get('message', {}).get('content')
+        empty = (content is None or content == '')
+        print(f"Response: {response}")
+        if not (error or empty):
             await send_to_channel(channel, [response])
             return
-
-        await asyncio.sleep(fib_curr)
-        fib_prev, fib_curr = fib_curr, fib_prev + fib_curr
+        if attempt < max_retries:
+            print("Retrying…")
+            await asyncio.sleep(fib_curr * base)
+            fib_prev, fib_curr = fib_curr, fib_prev + fib_curr
 
     print("Max retries reached. Failed to process response.")
 
@@ -136,7 +142,7 @@ async def get_message_from_channel(channel_id: str, index: int):
     i = len(history) - index - 1
     if i < 0:
         raise HTTPException(status_code=400, detail="Bad index")
-    return to_response(history[i]) 
+    return to_response(history[i])
 
 
 async def send_messages_on_subscription(channel_id: str, ws: WebSocket):
