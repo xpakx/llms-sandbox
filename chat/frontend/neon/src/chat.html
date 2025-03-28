@@ -11,6 +11,7 @@
 		</div>
 
 		<div class="chat-input-container">
+			#ifndef SIMPLE
 			<div class="chat-input-row">
 				<div class="model-switch" id="model-switch">
 					<div class="model-option active" data-model="normal">Normal</div>
@@ -32,12 +33,14 @@
 					</div>
 				</div>
 			</div>
+			#endif
 
 			<div class="chat-input-row">
 				<input type="text" class="chat-input" id="user-input" placeholder="Type your message..." autocomplete="off">
 				<button class="send-button" id="send-button">➤</button>
 			</div>
 
+			#ifndef SIMPLE
 			<div class="control-buttons">
 				<button class="control-button">
 					<span>✨</span> Regenerate
@@ -49,6 +52,7 @@
 					<span>🔍</span> Web Search
 				</button>
 			</div>
+			#endif
 		</div>
 	</div>
 </div>

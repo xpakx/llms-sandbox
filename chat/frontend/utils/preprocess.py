@@ -2,8 +2,7 @@ import re
 import os
 
 FLAGS = {
-    "TESTING": True,
-    "DEBUG": False,
+    "SIMPLE": True,
 }
 
 IFDEF_PATTERN = re.compile(r"#ifdef (\w+)")
