@@ -4,6 +4,7 @@ all: build
 
 build: $(SRCS)
 	python3 utils/preprocess.py
+	cp neon/src/styles.css neon/dist/styles.css
 
 clean:
 	rm neon/dist/*

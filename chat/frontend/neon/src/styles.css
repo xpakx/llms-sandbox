@@ -1,0 +1,29 @@
+:root {
+	--space-black: #0A0A1A;
+	--deep-purple: #3A2E4D;
+	--cosmic-pink: #FF6B9D;
+	--starlight-yellow: #FFE66D;
+	--nebula-blue: #6D9EFF;
+	--vintage-cyan: #00FFFF;
+	--retro-red: #FF3366;
+	--off-white: #F0F0FF;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: 'Courier New', monospace;
+}
+
+body {
+	background-color: var(--space-black);
+	background-image: 
+	radial-gradient(circle at 10% 20%, rgba(255, 107, 157, 0.15) 0%, transparent 20%),
+	radial-gradient(circle at 90% 80%, rgba(109, 158, 255, 0.15) 0%, transparent 20%);
+	color: var(--off-white);
+	height: 100vh;
+	display: flex;
+	overflow: hidden;
+}
+
