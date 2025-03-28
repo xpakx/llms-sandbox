@@ -7,12 +7,17 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
+    <div class="stars"></div>
+    <div class="decoration moon"></div>
+    #ifdef SIDEBAR
+    #include "sidebar.html"
+    #endif
 
     <div class="main-content">
 	    #include "chat.html"
     </div>
 
+    <script src="script.js"></script>
 </body>
 </html>
 

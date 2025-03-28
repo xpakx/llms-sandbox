@@ -2,9 +2,10 @@ SRCS = $(wildcard neon/src/*.html)
 
 all: build
 
-build: $(SRCS)
+build: $(SRCS) neon/src/styles.css neon/src/script.js
 	python3 utils/preprocess.py
 	cp neon/src/styles.css neon/dist/styles.css
+	cp neon/src/script.js neon/dist/script.js
 
 clean:
 	rm neon/dist/*
