@@ -16,9 +16,17 @@ ws.onmessage = (event) => {
 		console.log(data.data.message)
 		for (let msg of data.data) {
 			appendMessage(msg.message);
+			if (loading && msg.message.username == "ai") {
+				messagesDiv.removeChild(loading);
+				loading = undefined;
+			} else if (!loading && msg.message.username == "user") {
+				loading = showLoading();
+			}
 		}
 	}
 };
+
+let loading = undefined;
 
 sendBtn.onclick = () => {
 	const message = messageInput.value.trim();
@@ -70,6 +78,21 @@ function parseMsg(data) {
 	}
 
 	return {'type': 'Not implemented'}
+}
+
+function showLoading() {
+	const loadingDiv = document.createElement('div');
+	loadingDiv.classList.add('message', 'bot-message', 'loading');
+	loadingDiv.innerHTML = `
+		<div class="loading-dot"></div>
+		<div class="loading-dot"></div>
+		<div class="loading-dot"></div>
+		`;
+	messagesDiv.appendChild(loadingDiv);
+	console.log(loadingDiv)
+	console.log(messagesDiv)
+	messagesDiv.scrollTop = messagesDiv.scrollHeight;
+	return loadingDiv;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
