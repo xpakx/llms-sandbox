@@ -109,3 +109,20 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 });
 
+
+document.addEventListener("keydown", (event) => {
+    const keyName = event.key;
+
+    if (keyName === "Enter") {
+	const message = messageInput.value.trim();
+	if (message) {
+		const msg = {
+			content: message,
+		};
+		sendMessage(JSON.stringify(msg));
+		messageInput.value = '';
+	}
+      return;
+    }
+  }
+);
