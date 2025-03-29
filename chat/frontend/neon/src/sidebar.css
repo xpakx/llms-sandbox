@@ -82,3 +82,108 @@
 	transform: scale(1.1);
 }
 
+.new-chat-btn {
+	background: var(--cosmic-pink);
+	color: var(--space-black);
+	border: none;
+	border-radius: 25px;
+	padding: 10px 15px;
+	margin: 15px;
+	font-weight: bold;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	transition: all 0.3s ease;
+}
+
+.new-chat-btn:hover {
+	background: var(--starlight-yellow);
+	transform: translateY(-2px);
+	box-shadow: 0 5px 15px rgba(255, 230, 109, 0.4);
+}
+
+.search-container {
+	padding: 0 15px 15px;
+	position: relative;
+}
+
+.search-container input {
+	width: 100%;
+	padding: 10px 15px 10px 35px;
+	border-radius: 25px;
+	border: 1px solid var(--nebula-blue);
+	background: rgba(255, 255, 255, 0.1);
+	color: var(--off-white);
+	outline: none;
+}
+
+.search-container::before {
+	content: "🔍";
+	position: absolute;
+	left: 25px;
+	top: 10px;
+	font-size: 0.9rem;
+	color: var(--vintage-cyan);
+}
+
+.folders-container {
+	flex: 1;
+	overflow-y: auto;
+	padding: 10px;
+}
+
+.folder {
+	margin-bottom: 15px;
+}
+
+.folder-header {
+	display: flex;
+	align-items: center;
+	padding: 8px 10px;
+	background: rgba(58, 46, 77, 0.5);
+	border-radius: 5px;
+	cursor: pointer;
+	user-select: none;
+}
+
+.folder-header:hover {
+	background: rgba(58, 46, 77, 0.8);
+}
+
+.folder-icon {
+	margin-right: 10px;
+	color: var(--vintage-cyan);
+}
+
+.folder-chats {
+	padding-left: 25px;
+	margin-top: 5px;
+	display: none;
+}
+
+.folder.active .folder-chats {
+	display: block;
+}
+
+.chat-item {
+	padding: 8px 10px;
+	border-radius: 5px;
+	cursor: pointer;
+	margin-bottom: 3px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.chat-item:hover {
+	background: rgba(255, 107, 157, 0.2);
+}
+
+.chat-item.active {
+	background: var(--cosmic-pink);
+	color: var(--space-black);
+	font-weight: bold;
+}
+
