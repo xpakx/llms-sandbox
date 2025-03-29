@@ -2,7 +2,8 @@ import re
 import os
 
 FLAGS = {
-    "SIMPLE": True,
+    "SIMPLE": False,
+    "SIDEBAR": True,
 }
 
 IFDEF_PATTERN = re.compile(r"#ifdef (\w+)")
@@ -87,5 +88,9 @@ def preprocess_file(input_path, output_path):
 input_file = os.path.join("neon/src", "index.html")
 output_file = os.path.join("neon/dist", "index.html")
 preprocess_file(input_file, output_file)
+print(f"Preprocessed page saved to {output_file}")
 
+input_file = os.path.join("neon/src", "styles.css")
+output_file = os.path.join("neon/dist", "styles.css")
+preprocess_file(input_file, output_file)
 print(f"Preprocessed page saved to {output_file}")

@@ -72,3 +72,17 @@ function parseMsg(data) {
 	return {'type': 'Not implemented'}
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+	const sidebarToggle = document.getElementById('sidebar-toggle');
+	const sidebarPanel = document.getElementById('sidebar-panel');
+	const closeSidebar = document.getElementById('close-sidebar');
+
+	sidebarToggle.addEventListener('click', () => {
+		sidebarPanel.classList.toggle('open');
+	});
+
+	closeSidebar.addEventListener('click', () => {
+		sidebarPanel.classList.remove('open');
+	});
+});
+

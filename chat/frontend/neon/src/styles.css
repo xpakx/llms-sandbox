@@ -347,3 +347,6 @@ body {
 	z-index: 1;
 }
 
+#ifdef SIDEBAR
+#include "sidebar.css"
+#endif
