@@ -185,12 +185,13 @@ def get_history_for_summary():
                 filter(lambda x: x["role"] != "system", history)
                 )
            )
+    msg = {"role": "user", "content": json.dumps(hist)}
 
-    hist.insert(0, {
+    prompt = {
         "role": "system",
         "content": "Please summarize the key points of this conversation in two concise paragraphs. Focus on preserving the most important information, such as decisions made, actions to be taken, critical insights, or any significant outcomes. Ensure the summary is clear, coherent, and retains the context of the discussion."
-        })
-    return hist
+        }
+    return [prompt, msg]
 
 
 def summary(client: OpenAI, config, hist):
