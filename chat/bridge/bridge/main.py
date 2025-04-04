@@ -9,6 +9,7 @@ from bridge.ai import get_client, ask_deepseek
 from datetime import datetime
 from openai import OpenAI
 import asyncio
+import bridge.db
 
 
 def load_config(filename: str) -> Dict[str, Any]:
@@ -30,6 +31,11 @@ app.add_middleware(
 config = load_config("config.json")
 client = get_client(config["apiKey"])
 history = [{"role": "system", "content": config["systemPrompt"], "date": datetime.now()}]
+
+
+@app.on_event("startup")
+def on_startup():
+    bridge.db.create_db_and_tables()
 
 
 @app.websocket("/ws/websocket")
