@@ -4,21 +4,25 @@ from aioclock import Every
 from aioclock.group import Group
 from worker.scheduler import get_scheduler
 from worker.fibonacci import fibonacci_backoff
+from worker.ai import AIWorker, get_client
+from worker.prompt import Prompt
+from worker.config import load_config
 
 scheduler = Group()
 
 
+config = load_config("files/config.json")
+client = get_client(config.api_key, config.provider)
 tasks = asyncio.Queue(maxsize=3)
+prompt = Prompt("joke.md")
+ai = AIWorker(client, config.model, prompt)
+ai.update_prompt()
 
 
 def my_task(t):
     async def task():
         print(f"Task start: {t}")
-        await asyncio.sleep(2)
-        print(f"Task end: {t}")
-        if t == "HI":
-            raise Exception(t)
-        return True
+        return await ai.ask(t)
     return task
 
 
@@ -34,7 +38,7 @@ async def main():
 
 
 async def feeder():
-    for msg in ["HI", "HEY", "HELLO", "MORNING", "BYE"]:
+    for msg in ["Joke about birds", "Joke about computers"]:
         await asyncio.sleep(1)
         await tasks.put(msg)
         print(f"[+] Added task: {msg}")
