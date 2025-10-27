@@ -2,11 +2,20 @@ import asyncio
 
 from aioclock import Every
 from aioclock.group import Group
+from pydantic import BaseModel
 from worker.scheduler import get_scheduler
 from worker.fibonacci import fibonacci_backoff
 from worker.ai import AIWorker, get_client
 from worker.prompt import Prompt
 from worker.config import load_config
+
+
+class Joke(BaseModel):
+    genre: str
+    joke: str
+    evaluation: int
+    tags: list[str]
+
 
 scheduler = Group()
 
@@ -15,7 +24,7 @@ config = load_config("files/config.json")
 client = get_client(config.api_key, config.provider)
 tasks = asyncio.Queue(maxsize=3)
 prompt = Prompt("joke.md")
-ai = AIWorker(client, config.model, prompt)
+ai = AIWorker(client, config.model, prompt, Joke)
 ai.update_prompt()
 
 
@@ -54,4 +63,7 @@ async def main_entry(app):
 
 if __name__ == "__main__":
     app = get_scheduler(scheduler)
-    asyncio.run(main_entry(app))
+    try:
+        asyncio.run(main_entry(app))
+    except KeyboardInterrupt:
+        print("Shutting down by user request")
