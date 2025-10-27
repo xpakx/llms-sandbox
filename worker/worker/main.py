@@ -3,6 +3,7 @@ import asyncio
 from aioclock import Every
 from aioclock.group import Group
 from worker.scheduler import get_scheduler
+from worker.fibonacci import fibonacci_backoff
 
 scheduler = Group()
 
@@ -10,10 +11,24 @@ scheduler = Group()
 tasks = asyncio.Queue(maxsize=3)
 
 
+def my_task(t):
+    async def task():
+        print(f"Task start: {t}")
+        await asyncio.sleep(2)
+        print(f"Task end: {t}")
+        if t == "HI":
+            raise Exception(t)
+        return True
+    return task
+
+
 @scheduler.task(trigger=Every(seconds=5))
 async def main():
     if not tasks.empty():
-        print(await tasks.get())
+        t = await tasks.get()
+        task = my_task(t)
+        result = await fibonacci_backoff(task, 5)
+        print(f"Task returned {result}")
     else:
         print("No tasks")
 
