@@ -17,11 +17,9 @@ class Joke(BaseModel):
 
 **Example Output:**
 
-```json
 {
   "genre": "pun",
   "joke": "I used to be a baker, but I couldn't make enough dough.",
   "evaluation": 5,
   "tags": ["wordplay", "career", "funny"]
 }
-```

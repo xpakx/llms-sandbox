@@ -22,7 +22,7 @@ ai.update_prompt()
 def my_task(t):
     async def task():
         print(f"Task start: {t}")
-        return await ai.ask(t)
+        return ai.ask(t)
     return task
 
 
@@ -31,14 +31,14 @@ async def main():
     if not tasks.empty():
         t = await tasks.get()
         task = my_task(t)
-        result = await fibonacci_backoff(task, 5)
+        result = await fibonacci_backoff(task, 5, start_index=4)
         print(f"Task returned {result}")
     else:
         print("No tasks")
 
 
 async def feeder():
-    for msg in ["Joke about birds", "Joke about computers"]:
+    for msg in ["Joke about birds", "Joke about computers", "Tell me a joke"]:
         await asyncio.sleep(1)
         await tasks.put(msg)
         print(f"[+] Added task: {msg}")

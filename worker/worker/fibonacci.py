@@ -1,9 +1,11 @@
 import asyncio
 
 
-async def fibonacci_backoff(task, max_attempts):
+async def fibonacci_backoff(task, max_attempts, start_index=0):
     a, b = 1, 1
     i = 0
+    for _ in range(start_index):
+        a, b = b, a + b
 
     while i < max_attempts:
         try:

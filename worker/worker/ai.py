@@ -23,13 +23,13 @@ class AIWorker:
 
     def ask(self, message: str) -> Joke:
         try:
-            completion = self.client.chat.completions.create(
+            completion = self.client.beta.chat.completions.parse(
                     model=self.model,
                     messages=self.prepare_message(message),
+                    response_format=Joke
             )
-            joke = self.client.chat.completions.parse(completion, model=Joke)
-
-            return joke
+            print(completion.choices[0].message.parsed)
+            return completion.choices[0].message.parsed
         except Exception as e:
             print(f"An error occurred while asking AI: {e}")
             raise
