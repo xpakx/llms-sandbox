@@ -9,6 +9,7 @@ from worker.ai import AIWorker, get_client
 from worker.prompt import Prompt
 from worker.config import load_config
 from worker.feeder import pika_feeder as feeder
+from worker.publisher import pika_publisher as publisher
 
 
 class Joke(BaseModel):
@@ -27,6 +28,7 @@ tasks = asyncio.Queue(maxsize=3)
 prompt = Prompt("joke.md")
 ai = AIWorker(client, config.model, prompt, Joke)
 ai.update_prompt()
+publish = None
 
 
 def my_task(t):
@@ -48,8 +50,14 @@ async def main_pika(message):
     result = await fibonacci_backoff(task, 5, start_index=4)
     print(f"Task returned {result}")
     if result:
-        await message.ack()
-        print(f"[Scheduler] Acked message: {t}")
+        try:
+            await publish("joke", result.joke)
+        except Exception as e:
+            await message.nack(requeue=True)
+            print(f"[Scheduler]  Error publishing {e}")
+        else:
+            await message.ack()
+            print(f"[Scheduler] Acked message: {t}")
     else:
         await message.nack(requeue=True)
         print(f"[Scheduler]  Error processing {t}")
@@ -66,10 +74,13 @@ async def main():
 
 
 async def main_entry(app):
+    global publish
+    publish, pub_connection = await publisher()
     scheduler_task = asyncio.create_task(app.serve())
     feeder_task = asyncio.create_task(feeder(tasks))
 
     await asyncio.gather(scheduler_task, feeder_task)
+    await pub_connection.close()
 
 
 if __name__ == "__main__":
