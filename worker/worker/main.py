@@ -36,16 +36,33 @@ def my_task(t):
     return task
 
 
+async def main_simple(message):
+    task = my_task(message)
+    result = await fibonacci_backoff(task, 5, start_index=4)
+    print(f"Task returned {result}")
+
+
+async def main_pika(message):
+    t = message.body.decode()
+    task = my_task(t)
+    result = await fibonacci_backoff(task, 5, start_index=4)
+    print(f"Task returned {result}")
+    if result:
+        await message.ack()
+        print(f"[Scheduler] Acked message: {t}")
+    else:
+        await message.nack(requeue=True)
+        print(f"[Scheduler]  Error processing {t}")
+
+
 @scheduler.task(trigger=Every(seconds=5))
 async def main():
     if not tasks.empty():
-        t = await tasks.get()
-        task = my_task(t)
-        result = await fibonacci_backoff(task, 5, start_index=4)
-        print(f"Task returned {result}")
-    else:
-        pass
-        # print("No tasks")
+        message = await tasks.get()
+        if type(message) is str:
+            await main_simple(message)
+        else:
+            await main_pika(message)
 
 
 async def main_entry(app):

@@ -29,12 +29,7 @@ async def pika_feeder(tasks: asyncio.Queue):
 
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
-            async with message.process():
-                try:
-                    payload = message.body.decode()
-                    await tasks.put(payload)
-                    print(f"[Feeder] Added task: {payload}")
-                except Exception as e:
-                    print(f"[Feeder] Error processing message: {e}")
+            await tasks.put(message)
+            print(f"[Feeder] Queued message: {message.body.decode()}")
 
     await connection.close()
