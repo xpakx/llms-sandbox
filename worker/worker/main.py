@@ -8,6 +8,7 @@ from worker.fibonacci import fibonacci_backoff
 from worker.ai import AIWorker, get_client
 from worker.prompt import Prompt
 from worker.config import load_config
+from worker.feeder import pika_feeder as feeder
 
 
 class Joke(BaseModel):
@@ -43,20 +44,13 @@ async def main():
         result = await fibonacci_backoff(task, 5, start_index=4)
         print(f"Task returned {result}")
     else:
-        print("No tasks")
-
-
-async def feeder():
-    for msg in ["Joke about birds", "Joke about computers", "Tell me a joke"]:
-        await asyncio.sleep(1)
-        await tasks.put(msg)
-        print(f"[+] Added task: {msg}")
-    print("[!] No more tasks to add.")
+        pass
+        # print("No tasks")
 
 
 async def main_entry(app):
     scheduler_task = asyncio.create_task(app.serve())
-    feeder_task = asyncio.create_task(feeder())
+    feeder_task = asyncio.create_task(feeder(tasks))
 
     await asyncio.gather(scheduler_task, feeder_task)
 
