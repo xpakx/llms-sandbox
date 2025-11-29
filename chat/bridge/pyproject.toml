@@ -3,18 +3,17 @@ name = "bridge"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "xpakx",email = "55586470+xpakx@users.noreply.github.com"}
+	{name = "xpakx",email = "55586470+xpakx@users.noreply.github.com"} 
 ]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "openai (>=1.61.1,<2.0.0)",
-    "fastapi (>=0.115.8,<0.116.0)",
-    "uvicorn[standard] (>=0.34.0,<0.35.0)",
-    "sqlmodel (>=0.0.24,<0.0.25)"
+    "fastapi[standard]>=0.122.0",
+    "openai>=2.8.1",
+    "sqlmodel>=0.0.27",
+    "uvicorn[standard]>=0.38.0",
 ]
 
-
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

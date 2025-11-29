@@ -14,7 +14,7 @@ def get_client(api_key: str) -> OpenAI:
 def ask_deepseek(client: OpenAI, messages: Any) -> str:
     try:
         completion = client.chat.completions.create(
-                model="deepseek/deepseek-chat:free",
+                model="google/gemini-2.0-flash-exp:free",
                 messages=messages
         )
         return completion.choices[0].message.content

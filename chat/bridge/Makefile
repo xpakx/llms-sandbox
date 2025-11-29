@@ -1,5 +1,5 @@
 .PHONY: serve
 
 serve:
-	poetry run uvicorn bridge.main:app
+	uv run fastapi dev bridge/main.py
 
