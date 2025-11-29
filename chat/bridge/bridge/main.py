@@ -29,7 +29,7 @@ app.add_middleware(
         allow_headers=["*"],
         )
 config = load_config("config.json")
-client = get_client(config["apiKey"])
+client = get_client(config["apiKey"], config["provider"])
 history = [{"role": "system", "content": config["systemPrompt"], "date": datetime.now()}]
 
 
