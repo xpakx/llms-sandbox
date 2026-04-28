@@ -48,9 +48,15 @@ class CommandDispatcher:
                 kwargs[elem] = value
         cmd.func(**kwargs)
 
-    def command(self, f):
-        self.register(f.__name__, f)
-        return f
+    def command(self, path: str | None = None, *, name: str = None):
+        def decorator(f: Callable):
+            registration_name = name if name else f.__name__
+            self.register(registration_name, f)
+            return f
+        if callable(path):
+            func = path
+            return decorator(func)
+        return decorator
 
 
 dispatcher = CommandDispatcher()
@@ -58,9 +64,13 @@ dispatcher = CommandDispatcher()
 
 @dispatcher.command
 def subscribe(program: Any, name: str, unsubscribe: bool):
-    program.select(name)
-    program.subscribe(not unsubscribe)
+    print(name)
+
+
+@dispatcher.command(name='find')
+def test(program: Any, name: str):
+    print(name)
 
 
 if __name__ == "__main__":
-    pass
+    print(dispatcher.commands)
