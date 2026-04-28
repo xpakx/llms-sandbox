@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Any, Literal
 from inspect import signature
+import argparse
 
 
 @dataclass
@@ -10,28 +11,117 @@ class PathPart:
 
 
 @dataclass
-class CommandDefiniton:
+class CommandDefinition:
     name: str
     arguments: list[str]
     func: Callable
-    path: list[PathPart]
+
+
+class CommandSpecs:
+    def __init__(self):
+        self.specs = {}
+
+    def parse_path(self, path: str) -> list[PathPart]:
+        fragment_list: list[PathPart] = []
+        fragments = path.split()
+        for fragment in fragments:
+            arg = False
+            if fragment[0] == '{' and fragment[-1] == '}':
+                arg = True
+                fragment = fragment[1:-1]
+            if not fragment.isalpha():
+                print(f"Part of path {fragment} is incorrect")
+                continue
+            fragment_list.append(
+                    PathPart(
+                        name=fragment,
+                        type="ARG" if arg else "CMD"
+                    )
+            )
+        return fragment_list
+
+    def add_to_specs(self, cmd_def: CommandDefinition, path: str | None):
+        parsed_path = self.parse_path(path) if path else [PathPart("CMD", cmd_def.name)]
+        curr = self.specs
+        curr_command = None
+        for elem in parsed_path:
+            if elem.type == "CMD":
+                self.ensure_subparsers(curr, curr_command)
+                curr = curr['subparsers']['commands'].setdefault(elem.name, {})
+                curr_command = elem.name
+            else:
+                self.ensure_args(curr)
+                exists = any(elem.name in d['flags'] for d in curr['args'])
+                if not exists:
+                    curr['args'].append({
+                        'flags': [elem.name],
+                        'type': str,  # TODO
+                        'help': '',
+                    })
+
+        curr['defaults'] = {'cmd_key': cmd_def.name}
+
+    def ensure_subparsers(self, curr, curr_command):
+        if 'subparsers' not in curr:
+            curr['subparsers'] = {
+                    'dest': f"{curr_command}_command" if curr_command else 'command',
+                    'help': '',
+                    'commands': {},
+            }
+
+    def ensure_args(self, curr):
+        if 'args' not in curr:
+            curr['args'] = []
+
+    def build_parser(self, spec: dict, parser=None) -> argparse.ArgumentParser:
+        if parser is None:
+            parser = argparse.ArgumentParser(
+                    description=spec.get("description", ""))
+
+        for arg in spec.get("args", []):
+            flags = arg.pop("flags")
+            parser.add_argument(*flags, **arg)
+
+        if "defaults" in spec:
+            parser.set_defaults(**spec["defaults"])
+
+        if "subparsers" in spec:
+            sp_spec = spec["subparsers"]
+            subparsers = parser.add_subparsers(
+                dest=sp_spec["dest"], help=sp_spec.get("help")
+            )
+            for name, cmd_spec in sp_spec.get("commands", {}).items():
+                parser_args = {
+                    k: v
+                    for k, v in cmd_spec.items()
+                    if k not in ["args", "subparsers", "defaults"]
+                }
+                sub = subparsers.add_parser(name, **parser_args)
+                self.build_parser(cmd_spec, parser=sub)
+
+        return parser
+
+    def parser(self) -> argparse.ArgumentParser:
+        return self.build_parser(self.specs)
+
 
 
 class CommandDispatcher:
     def __init__(self):
-        self.commands: dict[str, CommandDefiniton] = {}
+        self.commands: dict[str, CommandDefinition] = {}
         self.services: dict[str, Any] = {}
         self.preprocessors: dict[str, Callable] = {}
+        self.specs = CommandSpecs()
 
     def register(self, name: str, command: Callable, path: str | None = None):
         sig = signature(command)
         args = list(sig.parameters.keys())
-        cmd_def = CommandDefiniton(
+        cmd_def = CommandDefinition(
                 name=name,
                 func=command,
                 arguments=args,
-                path=self.parse_path(path) if path else [PathPart("CMD", name)]
         )
+        self.specs.add_to_specs(cmd_def, path)
         self.commands[name] = cmd_def
 
     def add_service(self, name: str, service: Any):
@@ -57,25 +147,6 @@ class CommandDispatcher:
                 kwargs[elem] = value
         cmd.func(**kwargs)
 
-    def parse_path(self, path: str) -> list[PathPart]:
-        fragment_list: list[PathPart] = []
-        fragments = path.split()
-        for fragment in fragments:
-            arg = False
-            if fragment[0] == '{' and fragment[-1] == '}':
-                arg = True
-                fragment = fragment[1:-1]
-            if not fragment.isalpha():
-                print(f"Part of path {fragment} is incorrect")
-                continue
-            fragment_list.append(
-                    PathPart(
-                        name=fragment,
-                        type="ARG" if arg else "CMD"
-                    )
-            )
-        return fragment_list
-
     def command(self, path: str | None = None, *, name: str = None):
         func = None
         if callable(path):
@@ -94,19 +165,30 @@ class CommandDispatcher:
 dispatcher = CommandDispatcher()
 
 
-@dispatcher.command
+@dispatcher.command('show {name} subscribe')
 def subscribe(program: Any, name: str, unsubscribe: bool):
-    print(name)
+    print("SUB", name)
 
 
-@dispatcher.command("find {name}", name='find')
+@dispatcher.command("show {name} find", name='find')
 def test(program: Any, name: str):
-    print(name)
+    print("FIND", name)
+
+
+@dispatcher.command("show {name}")
+def show(program: Any, name: str):
+    print("SHOW", name)
 
 
 if __name__ == "__main__":
+    parser = dispatcher.specs.parser()
+    args = parser.parse_args()
+    cmd_key = getattr(args, 'cmd_key', None)
+    if cmd_key:
+        dispatcher.dispatch(args.cmd_key, args)
+
     for cmd in dispatcher.commands.values():
         print(cmd.name)
         print(cmd.arguments)
-        print(cmd.path)
         print("---")
+    print(dispatcher.specs.specs)
