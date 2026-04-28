@@ -77,12 +77,16 @@ class CommandDispatcher:
         return fragment_list
 
     def command(self, path: str | None = None, *, name: str = None):
+        func = None
+        if callable(path):
+            func = path
+            path = None
+
         def decorator(f: Callable):
             registration_name = name if name else f.__name__
             self.register(registration_name, f, path)
             return f
-        if callable(path):
-            func = path
+        if func:
             return decorator(func)
         return decorator
 
@@ -90,7 +94,7 @@ class CommandDispatcher:
 dispatcher = CommandDispatcher()
 
 
-@dispatcher.command()
+@dispatcher.command
 def subscribe(program: Any, name: str, unsubscribe: bool):
     print(name)
 
