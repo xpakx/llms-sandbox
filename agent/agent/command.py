@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Any, Literal
+from typing import Callable, Any, Literal, Type
 from inspect import signature, getdoc
 import argparse
 
@@ -14,6 +14,7 @@ class PathPart:
 class CommandDefinition:
     name: str
     arguments: list[str]
+    argument_types: dict[str, Type[Any]]
     func: Callable
     docs: str | None
 
@@ -54,10 +55,11 @@ class CommandSpecs:
                 self.ensure_args(curr)
                 exists = any(elem.name in d['flags'] for d in curr['args'])
                 if not exists:
+                    arg_type = cmd_def.argument_types.get(elem.name, str)
                     curr['args'].append({
                         'flags': [elem.name],
-                        'type': str,  # TODO
-                        'help': '',
+                        'type': arg_type,
+                        'help': '',  # TODO
                     })
 
         curr['defaults'] = {'cmd_key': cmd_def.name}
@@ -118,10 +120,16 @@ class CommandDispatcher:
         sig = signature(command)
         args = list(sig.parameters.keys())
         docs = getdoc(command)
+        types = {
+            k: v.annotation
+            for k, v in sig.parameters.items()
+            if v.annotation is not v.empty
+        }
         cmd_def = CommandDefinition(
                 name=name,
                 func=command,
                 arguments=args,
+                argument_types=types,
                 docs=docs,
         )
         self.specs.add_to_specs(cmd_def, path)
@@ -188,6 +196,7 @@ def show(program: Any, name: str):
 
 
 if __name__ == "__main__":
+    print(dispatcher.specs.specs)
     parser = dispatcher.specs.parser()
     args = parser.parse_args()
     cmd_key = getattr(args, 'cmd_key', None)
