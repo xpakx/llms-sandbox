@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable, Any, Literal
-from inspect import signature
+from inspect import signature, getdoc
 import argparse
 
 
@@ -15,6 +15,7 @@ class CommandDefinition:
     name: str
     arguments: list[str]
     func: Callable
+    docs: str | None
 
 
 class CommandSpecs:
@@ -60,6 +61,7 @@ class CommandSpecs:
                     })
 
         curr['defaults'] = {'cmd_key': cmd_def.name}
+        curr['help'] = cmd_def.docs
 
     def ensure_subparsers(self, curr, curr_command):
         if 'subparsers' not in curr:
@@ -105,7 +107,6 @@ class CommandSpecs:
         return self.build_parser(self.specs)
 
 
-
 class CommandDispatcher:
     def __init__(self):
         self.commands: dict[str, CommandDefinition] = {}
@@ -116,10 +117,12 @@ class CommandDispatcher:
     def register(self, name: str, command: Callable, path: str | None = None):
         sig = signature(command)
         args = list(sig.parameters.keys())
+        docs = getdoc(command)
         cmd_def = CommandDefinition(
                 name=name,
                 func=command,
                 arguments=args,
+                docs=docs,
         )
         self.specs.add_to_specs(cmd_def, path)
         self.commands[name] = cmd_def
@@ -167,11 +170,15 @@ dispatcher = CommandDispatcher()
 
 @dispatcher.command('show {name} subscribe')
 def subscribe(program: Any, name: str, unsubscribe: bool):
+    '''
+    Subscribing to show
+    '''
     print("SUB", name)
 
 
 @dispatcher.command("show {name} find", name='find')
 def test(program: Any, name: str):
+    '''Finding show'''
     print("FIND", name)
 
 
