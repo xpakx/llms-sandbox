@@ -192,6 +192,14 @@ class CommandDispatcher:
             return decorator(func)
         return decorator
 
+    def run(self):
+        # TODO: pass services, detect and define flags
+        parser = dispatcher.specs.parser()
+        args = parser.parse_args()
+        cmd_key = getattr(args, 'cmd_key', None)
+        if cmd_key:
+            dispatcher.dispatch(args.cmd_key, args)
+
 
 dispatcher = CommandDispatcher()
 
@@ -217,14 +225,4 @@ def show(program: Any, name: str):
 
 if __name__ == "__main__":
     print(dispatcher.specs.specs)
-    parser = dispatcher.specs.parser()
-    args = parser.parse_args()
-    cmd_key = getattr(args, 'cmd_key', None)
-    if cmd_key:
-        dispatcher.dispatch(args.cmd_key, args)
-
-    for cmd in dispatcher.commands.values():
-        print(cmd.name)
-        print(cmd.arguments)
-        print("---")
-    print(dispatcher.specs.specs)
+    dispatcher.run()
