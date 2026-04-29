@@ -17,6 +17,8 @@ class CommandDefinition:
     argument_types: dict[str, Type[Any]]
     func: Callable
     docs: str | None
+    flags: dict[str, list[str] | str]
+    arg_help: dict[str, str]
 
 
 class CommandSpecs:
@@ -59,8 +61,9 @@ class CommandSpecs:
                     curr['args'].append({
                         'flags': [elem.name],
                         'type': arg_type,
-                        'help': '',  # TODO
+                        'help': cmd_def.arg_help.get(elem.name, ''),
                     })
+                # TODO: update help if redefined
 
         curr['defaults'] = {'cmd_key': cmd_def.name}
         curr['help'] = cmd_def.docs
@@ -116,7 +119,14 @@ class CommandDispatcher:
         self.preprocessors: dict[str, Callable] = {}
         self.specs = CommandSpecs()
 
-    def register(self, name: str, command: Callable, path: str | None = None):
+    def register(
+            self,
+            name: str,
+            command: Callable,
+            path: str | None = None,
+            flags: dict[str, list[str] | str] | None = None,
+            help: dict[str, str] | None = None,
+    ):
         sig = signature(command)
         args = list(sig.parameters.keys())
         docs = getdoc(command)
@@ -131,6 +141,8 @@ class CommandDispatcher:
                 arguments=args,
                 argument_types=types,
                 docs=docs,
+                flags=flags if flags else {},
+                arg_help=help if help else {},
         )
         self.specs.add_to_specs(cmd_def, path)
         self.commands[name] = cmd_def
@@ -158,7 +170,14 @@ class CommandDispatcher:
                 kwargs[elem] = value
         cmd.func(**kwargs)
 
-    def command(self, path: str | None = None, *, name: str = None):
+    def command(
+            self,
+            path: str | None = None,
+            *,
+            name: str | None = None,
+            flags: dict[str, list[str] | str] | None = None,
+            help: dict[str, str] | None = None,
+    ):
         func = None
         if callable(path):
             func = path
@@ -166,7 +185,8 @@ class CommandDispatcher:
 
         def decorator(f: Callable):
             registration_name = name if name else f.__name__
-            self.register(registration_name, f, path)
+            self.register(registration_name, f,
+                          path=path, flags=flags, help=help)
             return f
         if func:
             return decorator(func)
@@ -176,7 +196,7 @@ class CommandDispatcher:
 dispatcher = CommandDispatcher()
 
 
-@dispatcher.command('show {name} subscribe')
+@dispatcher.command('show {name} subscribe', help={'name': 'name of the show'})
 def subscribe(program: Any, name: str, unsubscribe: bool):
     '''
     Subscribing to show
@@ -184,7 +204,7 @@ def subscribe(program: Any, name: str, unsubscribe: bool):
     print("SUB", name)
 
 
-@dispatcher.command("show {name} find", name='find')
+@dispatcher.command("show {name} find")
 def test(program: Any, name: str):
     '''Finding show'''
     print("FIND", name)
