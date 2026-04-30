@@ -176,6 +176,9 @@ class CommandDispatcher:
                 kwargs[elem] = self.services.get(elem)
             else:
                 value = vs.get(elem)
+                tp = cmd.argument_types.get(elem)
+                if tp and tp is not str and tp is not Any:
+                    value = tp(value)
                 if elem in self.preprocessors:
                     value = self.preprocessors[elem](value)
                 kwargs[elem] = value
