@@ -69,6 +69,12 @@ class CommandSpecs:
                         print(f"WARNING: redefining help for {elem.name}")
                     if help:
                         match['help'] = help
+                    arg_type = cmd_def.argument_types.get(elem.name, str)
+                    if arg_type != match['type']:
+                        print(f"WARNING: `{elem.name}` was already defined as "
+                              f"{match['type'].__name__} but `{cmd_def.name}()` "
+                              f"tries to redefine it as {arg_type.__name__}."
+                              )
 
         curr['defaults'] = {'cmd_key': cmd_def.name}
         curr['help'] = cmd_def.docs
