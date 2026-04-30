@@ -55,15 +55,20 @@ class CommandSpecs:
                 curr_command = elem.name
             else:
                 self.ensure_args(curr)
-                exists = any(elem.name in d['flags'] for d in curr['args'])
-                if not exists:
+                match = next((d for d in curr['args'] if elem.name in d['flags']), None)
+                if not match:
                     arg_type = cmd_def.argument_types.get(elem.name, str)
                     curr['args'].append({
                         'flags': [elem.name],
                         'type': arg_type,
                         'help': cmd_def.arg_help.get(elem.name, ''),
                     })
-                # TODO: update help if redefined
+                else:
+                    help = cmd_def.arg_help.get(elem.name)
+                    if help and match['help']:
+                        print(f"WARNING: redefining help for {elem.name}")
+                    if help:
+                        match['help'] = help
 
         curr['defaults'] = {'cmd_key': cmd_def.name}
         curr['help'] = cmd_def.docs
