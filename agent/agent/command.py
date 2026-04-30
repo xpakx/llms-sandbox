@@ -1,7 +1,12 @@
 from dataclasses import dataclass
 from typing import Callable, Any, Literal, Type
+from typing import get_origin, get_args, Union
+from types import UnionType
 from inspect import signature, getdoc
 import argparse
+from pathlib import Path
+from enum import Enum
+from collections.abc import Sequence, Iterable
 
 
 @dataclass
@@ -24,6 +29,33 @@ class CommandDefinition:
 class CommandSpecs:
     def __init__(self):
         self.specs = {}
+
+    def is_flag_type(self, tp: Type[Any]) -> bool:
+        if tp in {int, float, str, bool, bytes, Path}:
+            return True
+
+        if isinstance(tp, type) and issubclass(tp, Enum):
+            return True
+
+        origin = get_origin(tp)
+        args = get_args(tp)
+
+        if origin is Literal:
+            return True
+
+        if origin in {list, set, tuple, Sequence, Iterable}:
+            if args:
+                return self.is_flag_type(args[0])
+            return True
+
+        is_union = origin is Union or (UnionType and origin is UnionType)
+        if is_union:
+            non_none_args = [arg for arg in args if arg is not type(None)]
+            if len(non_none_args) == 1:
+                return self.is_flag_type(non_none_args[0])
+            return False
+
+        return False
 
     def parse_path(self, path: str) -> list[PathPart]:
         fragment_list: list[PathPart] = []
@@ -76,6 +108,12 @@ class CommandSpecs:
                               f"tries to redefine it as {arg_type.__name__}."
                               )
 
+        for arg in cmd_def.arguments:
+            tp = cmd_def.argument_types.get(arg)
+            if not tp:
+                continue
+            if self.is_flag_type(tp):
+                print("flag candidate:", arg)
         curr['defaults'] = {'cmd_key': cmd_def.name}
         curr['help'] = cmd_def.docs
 
