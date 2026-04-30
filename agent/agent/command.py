@@ -80,6 +80,7 @@ class CommandSpecs:
         parsed_path = self.parse_path(path) if path else [PathPart("CMD", cmd_def.name)]
         curr = self.specs
         curr_command = None
+        used_args = set()
         for elem in parsed_path:
             if elem.type == "CMD":
                 self.ensure_subparsers(curr, curr_command)
@@ -107,10 +108,11 @@ class CommandSpecs:
                               f"{match['type'].__name__} but `{cmd_def.name}()` "
                               f"tries to redefine it as {arg_type.__name__}."
                               )
+                used_args.add(elem.name)
 
         for arg in cmd_def.arguments:
             tp = cmd_def.argument_types.get(arg)
-            if not tp:
+            if not tp or arg in used_args:
                 continue
             if self.is_flag_type(tp):
                 print("flag candidate:", arg)
