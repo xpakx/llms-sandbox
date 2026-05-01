@@ -26,6 +26,13 @@ class CommandDefinition:
     arg_help: dict[str, str]
 
 
+@dataclass 
+class ServiceData:
+    name: str
+    type: Type[Any]
+    service: Any
+
+
 class CommandSpecs:
     def __init__(self):
         self.specs = {}
@@ -186,7 +193,7 @@ class CommandSpecs:
 class CommandDispatcher:
     def __init__(self):
         self.commands: dict[str, CommandDefinition] = {}
-        self.services: dict[str, Any] = {}
+        self.services: dict[str, ServiceData] = {}
         self.preprocessors: dict[str, Callable] = {}
         self.specs = CommandSpecs()
 
@@ -219,7 +226,11 @@ class CommandDispatcher:
         self.commands[name] = cmd_def
 
     def add_service(self, name: str, service: Any):
-        self.services[name] = service
+        self.services[name] = ServiceData(
+                name=name,
+                service=service,
+                type=service.__class__
+        )
 
     def add_preprocessor(self, name: str, processor: Callable):
         self.preprocessors[name] = processor
@@ -233,7 +244,8 @@ class CommandDispatcher:
         for elem in cmd.arguments:
             # TODO: dispatch services by type
             if elem in self.services:
-                kwargs[elem] = self.services.get(elem)
+                service = self.services.get(elem)
+                kwargs[elem] = service.service if service else None
             else:
                 value = vs.get(elem)
                 tp = cmd.argument_types.get(elem)
@@ -267,7 +279,6 @@ class CommandDispatcher:
         return decorator
 
     def run(self):
-        # TODO: pass services, detect and define flags
         parser = dispatcher.specs.parser()
         args = parser.parse_args()
         cmd_key = getattr(args, 'cmd_key', None)
