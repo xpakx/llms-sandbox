@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Any, Literal, Type
+from typing import Callable, Any, Literal, Type, Tuple
 from typing import get_origin, get_args, Union
 from types import UnionType
 from inspect import signature, getdoc
@@ -30,32 +30,32 @@ class CommandSpecs:
     def __init__(self):
         self.specs = {}
 
-    def is_flag_type(self, tp: Type[Any]) -> bool:
+    def is_flag_type(self, tp: Type[Any]) -> Tuple[bool, Type[Any] | None]:
         if tp in {int, float, str, bool, bytes, Path}:
-            return True
+            return True, tp
 
         if isinstance(tp, type) and issubclass(tp, Enum):
-            return True
+            return True, tp
 
         origin = get_origin(tp)
         args = get_args(tp)
 
         if origin is Literal:
-            return True
+            return True, tp
 
         if origin in {list, set, tuple, Sequence, Iterable}:
             if args:
                 return self.is_flag_type(args[0])
-            return True
+            return True, tp
 
         is_union = origin is Union or (UnionType and origin is UnionType)
         if is_union:
             non_none_args = [arg for arg in args if arg is not type(None)]
             if len(non_none_args) == 1:
-                return self.is_flag_type(non_none_args[0])
-            return False
+                return self.is_flag_type(non_none_args[0]), tp
+            return False, None
 
-        return False
+        return False, None
 
     def parse_path(self, path: str) -> list[PathPart]:
         fragment_list: list[PathPart] = []
@@ -114,8 +114,10 @@ class CommandSpecs:
             tp = cmd_def.argument_types.get(arg)
             if not tp or arg in used_args:
                 continue
-            if self.is_flag_type(tp):
-                print("flag candidate:", arg)
+            is_flag, tp = self.is_flag_type(tp)
+            if is_flag:
+                print("flag candidate:", arg, tp.__name__)
+                self.add_flag(curr, arg, tp, cmd_def)
         curr['defaults'] = {'cmd_key': cmd_def.name}
         curr['help'] = cmd_def.docs
 
@@ -126,6 +128,24 @@ class CommandSpecs:
                     'help': '',
                     'commands': {},
             }
+
+    def add_flag(self, curr: dict, arg: str,
+                 tp: Type[Any], cmd_def: CommandDefinition):
+        var = {}
+        help = cmd_def.arg_help.get(arg)
+        if help:
+            var['help'] = help
+        flags = []
+        flags.append(f"--{arg}")
+        more_flags = cmd_def.flags.get(arg, [])
+        flags.extend(more_flags)
+        var['flags'] = flags
+        if tp == bool:
+            var['action'] = "store_true"
+        else:
+            var['type'] = tp
+        self.ensure_args(curr)
+        curr['args'].append(var)
 
     def ensure_args(self, curr):
         if 'args' not in curr:
@@ -258,12 +278,17 @@ class CommandDispatcher:
 dispatcher = CommandDispatcher()
 
 
-@dispatcher.command('show {name} subscribe', help={'name': 'name of the show'})
+@dispatcher.command('show {name} subscribe',
+                    help={'name': 'name of the show',
+                          'unsubscribe': 'unsubscribe the show'},
+                    flags={'unsubscribe': ['-u']})
 def subscribe(program: Any, name: str, unsubscribe: bool):
     '''
     Subscribing to show
     '''
     print("SUB", name)
+    if unsubscribe:
+        print("unsub")
 
 
 @dispatcher.command("show {name} find")
