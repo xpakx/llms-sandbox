@@ -118,8 +118,8 @@ class Program:
         print("program loaded")
 
 
-@app.command()
-def run(program: Program):
+@app.command(flags={'special': '-s'})
+def run(program: Program, special: bool):
     '''Running program '''
     print("Program")
     program.test()

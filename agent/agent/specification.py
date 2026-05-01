@@ -121,6 +121,8 @@ class CommandSpecs:
         flags = []
         flags.append(f"--{arg}")
         more_flags = cmd_def.flags.get(arg, [])
+        if type(more_flags) is str:
+            more_flags = [more_flags]
         flags.extend(more_flags)
         var['flags'] = flags
         if tp == bool:
