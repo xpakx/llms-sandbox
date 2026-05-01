@@ -94,40 +94,8 @@ class CommandDispatcher:
         return decorator
 
     def run(self):
-        parser = dispatcher.specs.parser()
+        parser = self.specs.parser()
         args = parser.parse_args()
         cmd_key = getattr(args, 'cmd_key', None)
         if cmd_key:
-            dispatcher.dispatch(args.cmd_key, args)
-
-
-dispatcher = CommandDispatcher()
-
-
-@dispatcher.command('show {name} subscribe',
-                    help={'name': 'name of the show',
-                          'unsubscribe': 'unsubscribe the show'},
-                    flags={'unsubscribe': ['-u']})
-def subscribe(program: Any, name: str, unsubscribe: bool):
-    '''
-    Subscribing to show
-    '''
-    print("SUB", name)
-    if unsubscribe:
-        print("unsub")
-
-
-@dispatcher.command("show {name} find")
-def test(program: Any, name: str):
-    '''Finding show'''
-    print("FIND", name)
-
-
-@dispatcher.command("show {name}")
-def show(program: Any, name: str):
-    print("SHOW", name)
-
-
-if __name__ == "__main__":
-    print(dispatcher.specs.specs)
-    dispatcher.run()
+            self.dispatch(args.cmd_key, args)

@@ -1,5 +1,7 @@
 import inspect
 
+from command import CommandDispatcher
+
 
 class SkillDescription:
     def __init__(self, target_class: type):
@@ -108,6 +110,33 @@ class WeatherTools:
         return (celsius * 9/5) + 32
 
 
-if __name__ == "__main__":
+app = CommandDispatcher()
+
+
+class Program:
+    def test(self):
+        print("program loaded")
+
+
+@app.command()
+def run(program: Program):
+    '''Running program '''
+    print("Program")
+    program.test()
+
+
+@app.command("skill")
+def skillgen(program: Program):
+    '''Generating skill'''
     generator = SkillDescription(WeatherTools)
     generator.save_to_file("SKILL.md")
+
+
+@app.command("show {name}")
+def show(program: Program, name: str):
+    print("SHOW", name)
+
+
+if __name__ == "__main__":
+    app.add_service('program', Program())
+    app.run()
