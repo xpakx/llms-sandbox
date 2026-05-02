@@ -9,4 +9,5 @@ dependencies = [
     "aioclock>=0.3.0",
     "msgspec>=0.21.1",
     "openai>=2.33.0",
+    "requests>=2.33.1",
 ]
