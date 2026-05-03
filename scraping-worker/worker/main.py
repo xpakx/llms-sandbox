@@ -2,7 +2,7 @@ import asyncio
 from aioclock import Every
 from aioclock.group import Group
 import msgspec
-import requests
+from httpx import AsyncClient
 
 from scheduler import get_scheduler
 
@@ -18,22 +18,23 @@ class TaskResponse(msgspec.Struct):
     content: str
 
 
-tasks = asyncio.Queue()
+fetch_tasks = asyncio.Queue()
 scheduler = Group()
+requests = AsyncClient()
 
 
 async def add_task(data: str):
     try:
         task = msgspec.json.decode(data, type=Task)
-        await tasks.put(task)
+        await fetch_tasks.put(task)
     except msgspec.DecodeError as e:
         print(f"Couldn't load config file {e}")
 
 
 @scheduler.task(trigger=Every(seconds=5))
-async def test():
-    task = await tasks.get()
-    response = requests.get(task.url)
+async def fetch():
+    task = await fetch_tasks.get()
+    response = await requests.get(task.url)
     if response.status_code == 200:
         task_response = TaskResponse(
                 id=task.id,
