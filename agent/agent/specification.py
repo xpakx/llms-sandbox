@@ -68,6 +68,9 @@ class CommandSpecs:
             if type(fragment) is CmdArg:
                 arg = True
                 value = fragment.name
+            elif fragment.startswith(':'):
+                arg = True
+                value = fragment[1:]
             fragment_list.append(
                     PathPart(
                         name=value,

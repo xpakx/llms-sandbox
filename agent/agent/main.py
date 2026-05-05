@@ -138,6 +138,11 @@ def show(program: Program, name: str):
     print("SHOW", name)
 
 
+@app.command(['find', ':name'])
+def find(program: Program, name: str):
+    print("FIND", name)
+
+
 if __name__ == "__main__":
     app.add_service('program', Program())
     app.run()
