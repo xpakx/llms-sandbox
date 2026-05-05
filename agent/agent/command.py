@@ -3,6 +3,7 @@ from inspect import signature, getdoc
 
 from data import CommandDefinition, ServiceData
 from specification import CommandSpecs
+from typedefs import CmdElem
 
 
 class CommandDispatcher:
@@ -16,7 +17,7 @@ class CommandDispatcher:
             self,
             name: str,
             command: Callable,
-            path: str | None = None,
+            path: str | list[CmdElem] | None = None,
             flags: dict[str, list[str] | str] | None = None,
             help: dict[str, str] | None = None,
     ):
@@ -73,7 +74,7 @@ class CommandDispatcher:
 
     def command(
             self,
-            path: str | None = None,
+            path: str | list[CmdElem] | None = None,
             *,
             name: str | None = None,
             flags: dict[str, list[str] | str] | None = None,

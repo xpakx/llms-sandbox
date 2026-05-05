@@ -7,6 +7,7 @@ from enum import Enum
 from collections.abc import Sequence, Iterable
 
 from data import PathPart, CommandDefinition
+from typedefs import CmdElem, CmdArg
 
 
 class CommandSpecs:
@@ -59,8 +60,34 @@ class CommandSpecs:
             )
         return fragment_list
 
-    def add_to_specs(self, cmd_def: CommandDefinition, path: str | None):
-        parsed_path = self.parse_path(path) if path else [PathPart("CMD", cmd_def.name)]
+    def transform_cmd_elems(self, path: list[CmdElem]) -> list[PathPart]:
+        fragment_list: list[PathPart] = []
+        for fragment in path:
+            arg = False
+            value = fragment
+            if type(fragment) is CmdArg:
+                arg = True
+                value = fragment.name
+            fragment_list.append(
+                    PathPart(
+                        name=value,
+                        type="ARG" if arg else "CMD"
+                    )
+            )
+        return fragment_list
+
+    def add_to_specs(
+            self,
+            cmd_def: CommandDefinition,
+            path: str | list[CmdElem] | None
+    ):
+        if type(path) is str:
+            parsed_path = self.parse_path(path)
+        elif not path:
+            parsed_path = [PathPart("CMD", cmd_def.name)]
+        else:
+            parsed_path = self.transform_cmd_elems(path)
+
         curr = self.specs
         curr_command = None
         used_args = set()

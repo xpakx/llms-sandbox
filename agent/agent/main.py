@@ -1,6 +1,7 @@
 import inspect
 
 from command import CommandDispatcher
+from typedefs import CmdArg
 
 
 class SkillDescription:
@@ -125,14 +126,14 @@ def run(program: Program, special: bool):
     program.test()
 
 
-@app.command("skill")
+@app.command(['skill'])
 def skillgen(program: Program):
     '''Generating skill'''
     generator = SkillDescription(WeatherTools)
     generator.save_to_file("SKILL.md")
 
 
-@app.command("show {name}")
+@app.command(['show', CmdArg('name')])
 def show(program: Program, name: str):
     print("SHOW", name)
 
