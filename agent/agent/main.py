@@ -120,6 +120,7 @@ class Program:
 
 
 @app.command(flags=[CmdFlag('special', aliases='-s')])
+@app.flag('special', aliases=['-s'])
 def run(program: Program, special: bool):
     '''Running program '''
     print("Program")

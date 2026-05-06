@@ -12,6 +12,7 @@ class CommandDispatcher:
         self.services: dict[str, ServiceData] = {}
         self.preprocessors: dict[str, Callable] = {}
         self.specs = CommandSpecs()
+        self.flag_data: dict[str, list[CmdFlag]] = {}
 
     def register(
             self,
@@ -42,6 +43,9 @@ class CommandDispatcher:
                 flags=flag_dict,
                 arg_help=help if help else {},
         )
+        # TODO: defer adding to spec until we know we
+        # have all data, as some might be defined
+        # separately, e.g. in @app.flag decorator
         self.specs.add_to_specs(cmd_def, path)
         self.commands[name] = cmd_def
 
@@ -104,3 +108,24 @@ class CommandDispatcher:
         cmd_key = getattr(args, 'cmd_key', None)
         if cmd_key:
             self.dispatch(args.cmd_key, args)
+
+    def save_flag_data(self, flag: CmdFlag, func: Callable):
+        cmd_flags = self.flag_data.setdefault(func.__name__, [])
+        cmd_flags.append(flag)
+        for f in cmd_flags:
+            print(f.name, f.aliases, f.help)
+
+    def flag(
+            self,
+            name: str,
+            *,
+            aliases: list[str] | str | None = None,
+            help: str | None = None,
+    ):
+        flag = CmdFlag(name, aliases=aliases, help=help)
+
+        def decorator(f: Callable):
+
+            self.save_flag_data(flag, f)
+            return f
+        return decorator
