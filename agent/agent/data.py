@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable, Any, Literal, Type
-from typedefs import CmdFlag
+from typedefs import CmdFlag, CmdElem
 
 
 @dataclass
@@ -18,6 +18,7 @@ class CommandDefinition:
     docs: str | None
     flags: dict[str, CmdFlag]
     arg_help: dict[str, str]
+    path: str | list[CmdElem] | None = None,
 
 
 @dataclass

@@ -81,9 +81,9 @@ class CommandSpecs:
 
     def add_to_specs(
             self,
-            cmd_def: CommandDefinition,
-            path: str | list[CmdElem] | None
+            cmd_def: CommandDefinition
     ):
+        path = cmd_def.path
         if type(path) is str:
             parsed_path = self.parse_path(path)
         elif not path:

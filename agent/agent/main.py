@@ -119,7 +119,7 @@ class Program:
         print("program loaded")
 
 
-@app.command(flags=[CmdFlag('special', aliases='-s')])
+@app.command
 @app.flag('special', aliases=['-s'])
 def run(program: Program, special: bool):
     '''Running program '''

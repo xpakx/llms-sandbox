@@ -42,11 +42,8 @@ class CommandDispatcher:
                 docs=docs,
                 flags=flag_dict,
                 arg_help=help if help else {},
+                path=path,
         )
-        # TODO: defer adding to spec until we know we
-        # have all data, as some might be defined
-        # separately, e.g. in @app.flag decorator
-        self.specs.add_to_specs(cmd_def, path)
         self.commands[name] = cmd_def
 
     def add_service(self, name: str, service: Any):
@@ -103,6 +100,7 @@ class CommandDispatcher:
         return decorator
 
     def run(self):
+        self.prepare_commands()
         parser = self.specs.parser()
         args = parser.parse_args()
         cmd_key = getattr(args, 'cmd_key', None)
@@ -112,8 +110,6 @@ class CommandDispatcher:
     def save_flag_data(self, flag: CmdFlag, func: Callable):
         cmd_flags = self.flag_data.setdefault(func.__name__, [])
         cmd_flags.append(flag)
-        for f in cmd_flags:
-            print(f.name, f.aliases, f.help)
 
     def flag(
             self,
@@ -125,7 +121,14 @@ class CommandDispatcher:
         flag = CmdFlag(name, aliases=aliases, help=help)
 
         def decorator(f: Callable):
-
             self.save_flag_data(flag, f)
             return f
         return decorator
+
+    def prepare_commands(self):
+        for cmd_def in self.commands.values():
+            func_name = cmd_def.func.__name__
+            flags = self.flag_data.get(func_name, [])
+            for flag in flags:
+                cmd_def.flags[flag.name] = flag
+            self.specs.add_to_specs(cmd_def)
