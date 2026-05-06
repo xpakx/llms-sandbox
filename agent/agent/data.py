@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable, Any, Literal, Type
+from typedefs import CmdFlag
 
 
 @dataclass
@@ -15,7 +16,7 @@ class CommandDefinition:
     argument_types: dict[str, Type[Any]]
     func: Callable
     docs: str | None
-    flags: dict[str, list[str] | str]
+    flags: dict[str, CmdFlag]
     arg_help: dict[str, str]
 
 

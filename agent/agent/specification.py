@@ -150,10 +150,9 @@ class CommandSpecs:
             var['help'] = help
         flags = []
         flags.append(f"--{arg}")
-        more_flags = cmd_def.flags.get(arg, [])
-        if type(more_flags) is str:
-            more_flags = [more_flags]
-        flags.extend(more_flags)
+        flag_def = cmd_def.flags.get(arg, [])
+        if flag_def:
+            flags.extend(flag_def.aliases)
         var['flags'] = flags
         if tp == bool:
             var['action'] = "store_true"

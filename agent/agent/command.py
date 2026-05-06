@@ -3,7 +3,7 @@ from inspect import signature, getdoc
 
 from data import CommandDefinition, ServiceData
 from specification import CommandSpecs
-from typedefs import CmdElem
+from typedefs import CmdElem, CmdFlag
 
 
 class CommandDispatcher:
@@ -18,7 +18,7 @@ class CommandDispatcher:
             name: str,
             command: Callable,
             path: str | list[CmdElem] | None = None,
-            flags: dict[str, list[str] | str] | None = None,
+            flags: list[CmdFlag] | None = None,
             help: dict[str, str] | None = None,
     ):
         sig = signature(command)
@@ -29,13 +29,17 @@ class CommandDispatcher:
             for k, v in sig.parameters.items()
             if v.annotation is not v.empty
         }
+        flag_dict = {}
+        if flags:
+            for flag in flags:
+                flag_dict[flag.name] = flag
         cmd_def = CommandDefinition(
                 name=name,
                 func=command,
                 arguments=args,
                 argument_types=types,
                 docs=docs,
-                flags=flags if flags else {},
+                flags=flag_dict,
                 arg_help=help if help else {},
         )
         self.specs.add_to_specs(cmd_def, path)

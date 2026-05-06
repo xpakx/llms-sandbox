@@ -1,7 +1,7 @@
 import inspect
 
 from command import CommandDispatcher
-from typedefs import CmdArg
+from typedefs import CmdArg, CmdFlag
 
 
 class SkillDescription:
@@ -119,7 +119,7 @@ class Program:
         print("program loaded")
 
 
-@app.command(flags={'special': '-s'})
+@app.command(flags=[CmdFlag('special', aliases='-s')])
 def run(program: Program, special: bool):
     '''Running program '''
     print("Program")
