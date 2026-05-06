@@ -46,9 +46,9 @@ class CommandSpecs:
         fragments = path.split()
         for fragment in fragments:
             arg = False
-            if fragment[0] == '{' and fragment[-1] == '}':
+            if fragment[0] == ':':
                 arg = True
-                fragment = fragment[1:-1]
+                fragment = fragment[1:]
             if not fragment.isalpha():
                 print(f"Part of path {fragment} is incorrect")
                 continue
