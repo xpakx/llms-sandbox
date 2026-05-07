@@ -82,7 +82,7 @@ class CommandDispatcher:
             path: str | list[CmdElem] | None = None,
             *,
             name: str | None = None,
-            flags: dict[str, list[str] | str] | None = None,
+            flags: list[CmdFlag] | None = None,
             help: dict[str, str] | None = None,
     ):
         func = None

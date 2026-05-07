@@ -6,7 +6,7 @@ from pathlib import Path
 from enum import Enum
 from collections.abc import Sequence, Iterable
 
-from data import PathPart, CommandDefinition
+from data import PathPart, CommandDefinition, CmdCmd, is_cmd
 from typedefs import CmdElem, CmdArg
 
 
@@ -52,31 +52,20 @@ class CommandSpecs:
             if not fragment.isalpha():
                 print(f"Part of path {fragment} is incorrect")
                 continue
-            fragment_list.append(
-                    PathPart(
-                        name=fragment,
-                        type="ARG" if arg else "CMD"
-                    )
-            )
+            part = CmdArg(fragment) if arg else CmdCmd(fragment)
+            fragment_list.append(part)
         return fragment_list
 
     def transform_cmd_elems(self, path: list[CmdElem]) -> list[PathPart]:
         fragment_list: list[PathPart] = []
         for fragment in path:
-            arg = False
-            value = fragment
             if type(fragment) is CmdArg:
-                arg = True
-                value = fragment.name
+                fragment_list.append(fragment)
             elif fragment.startswith(':'):
-                arg = True
                 value = fragment[1:]
-            fragment_list.append(
-                    PathPart(
-                        name=value,
-                        type="ARG" if arg else "CMD"
-                    )
-            )
+                fragment_list.append(CmdArg(value))
+            else:
+                fragment_list.append(CmdCmd(fragment))
         return fragment_list
 
     def add_to_specs(
@@ -87,7 +76,7 @@ class CommandSpecs:
         if type(path) is str:
             parsed_path = self.parse_path(path)
         elif not path:
-            parsed_path = [PathPart("CMD", cmd_def.name)]
+            parsed_path = [CmdCmd(cmd_def.name)]
         else:
             parsed_path = self.transform_cmd_elems(path)
 
@@ -95,7 +84,7 @@ class CommandSpecs:
         curr_command = None
         used_args = set()
         for elem in parsed_path:
-            if elem.type == "CMD":
+            if is_cmd(elem):
                 self.ensure_subparsers(curr, curr_command)
                 curr = curr['subparsers']['commands'].setdefault(elem.name, {})
                 curr_command = elem.name

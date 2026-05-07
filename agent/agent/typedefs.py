@@ -1,4 +1,6 @@
 class CmdArg:
+    type = 'ARG'
+
     def __init__(
             self,
             name: str,
@@ -13,6 +15,8 @@ CmdElem = str | CmdArg
 
 
 class CmdFlag:
+    type = 'FLAG'
+
     def __init__(
             self,
             name: str,
