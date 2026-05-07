@@ -133,14 +133,11 @@ class CommandSpecs:
     def add_flag(self, curr: dict, arg: str,
                  tp: Type[Any], cmd_def: CommandDefinition):
         var = {}
-        # TODO
-        # help = cmd_def.arg_help.get(arg)
-        help = None
-        if help:
-            var['help'] = help
+        flag_def = cmd_def.flags.get(arg, [])
+        if flag_def.help:
+            var['help'] = flag_def.help
         flags = []
         flags.append(f"--{arg}")
-        flag_def = cmd_def.flags.get(arg, [])
         if flag_def:
             flags.extend(flag_def.aliases)
         var['flags'] = flags
