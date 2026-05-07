@@ -1,7 +1,7 @@
 import inspect
 
 from command import CommandDispatcher
-from typedefs import CmdArg, CmdFlag
+from typedefs import CmdArg
 
 
 class SkillDescription:
@@ -111,7 +111,14 @@ class WeatherTools:
         return (celsius * 9/5) + 32
 
 
-app = CommandDispatcher()
+def non_decorator_func(name: str):
+    '''Non-decorated command'''
+    print("NON-DEC", name)
+
+
+app = CommandDispatcher().with_cmd(
+        non_decorator_func, 'dec :name'
+)
 
 
 class Program:

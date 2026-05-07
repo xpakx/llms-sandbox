@@ -1,4 +1,4 @@
-from typing import Callable, Any
+from typing import Callable, Any, Self
 from inspect import signature, getdoc
 
 from data import CommandDefinition, ServiceData
@@ -95,6 +95,19 @@ class CommandDispatcher:
         if func:
             return decorator(func)
         return decorator
+
+    def with_cmd(
+            self,
+            method: Callable,
+            path: str | list[CmdElem] | None = None,
+            *,
+            name: str | None = None,
+            flags: list[CmdFlag] | None = None,
+    ) -> Self:
+        registration_name = name if name else method.__name__
+        self.register(registration_name, method,
+                      path=path, flags=flags)
+        return self
 
     def run(self):
         self.prepare_commands()
