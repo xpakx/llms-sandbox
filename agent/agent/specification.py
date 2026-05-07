@@ -96,14 +96,13 @@ class CommandSpecs:
                     curr['args'].append({
                         'flags': [elem.name],
                         'type': arg_type,
-                        'help': cmd_def.arg_help.get(elem.name, ''),
+                        'help': elem.help or '',
                     })
                 else:
-                    help = cmd_def.arg_help.get(elem.name)
-                    if help and match['help']:
+                    if elem.help and match['help']:
                         print(f"WARNING: redefining help for {elem.name}")
-                    if help:
-                        match['help'] = help
+                    if elem.help:
+                        match['help'] = elem.help
                     arg_type = cmd_def.argument_types.get(elem.name, str)
                     if arg_type != match['type']:
                         print(f"WARNING: `{elem.name}` was already defined as "
@@ -134,7 +133,9 @@ class CommandSpecs:
     def add_flag(self, curr: dict, arg: str,
                  tp: Type[Any], cmd_def: CommandDefinition):
         var = {}
-        help = cmd_def.arg_help.get(arg)
+        # TODO
+        # help = cmd_def.arg_help.get(arg)
+        help = None
         if help:
             var['help'] = help
         flags = []

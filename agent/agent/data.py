@@ -24,7 +24,6 @@ class CommandDefinition:
     func: Callable
     docs: str | None
     flags: dict[str, CmdFlag]
-    arg_help: dict[str, str]
     path: str | list[CmdElem] | None = None,
 
 
